@@ -23,7 +23,7 @@ def load_dataset(name):
 def move_data(data, device):
     if data.x.device == device:
         return data
-        
+
     data = copy.deepcopy(data)
     
     data.x = data.x.to(device)
@@ -196,10 +196,9 @@ def train_for_layers(model_class, hparams, data, epochs, lr, num_layers, trials,
             _, test_acc = evaluate(model, data, data.test_mask)
             test_acc_values.append(test_acc.item())
 
-            tqdm.write('| {}-th run | train_acc = {:.4f} | val_acc = {:.4f} | test_acc = {:.4f} |'.format(trial+1,
-                                                                                                          train_acc.item(),
-                                                                                                          val_acc.item(),
-                                                                                                          test_acc.item()))
+            log = '| {}-th run | train_acc = {:.4f} | val_acc = {:.4f} | test_acc = {:.4f} |'
+            tqdm.write(log.format(trial+1, train_acc.item(), val_acc.item(), test_acc.item()))
+            
         print('-'*72)
         train_acc_list.append(train_acc_values)
         val_acc_list.append(val_acc_values)

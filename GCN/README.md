@@ -14,6 +14,8 @@ Use the following command to train a GCN model trained on Cora dataset with defa
 $ python train.py accuracy --dataset Cora  --gpu True
 ```
 
+You can set different dataset in the argument `--dataset` to reproduce other results. See help for more setting.
+
 Once the training is completed, there would be a model file called `gcn.pth`, and an image called `gcn.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
 
 ![](./images/gcn.png)
@@ -25,5 +27,10 @@ Use the following command to train a multi-layer GCN model with or without resid
 ```
 $ python train.py layers --dataset Cora  --gpu True
 ```
+
+It will train two GCN models, one with residual connections and the other without residual connections.
+
+Once the training is done, a image showing the different between these two models will be saved as `multi_gcn.png`.
+
 
 ![](./images/multi_gcn.png)

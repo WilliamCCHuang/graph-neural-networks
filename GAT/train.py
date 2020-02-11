@@ -21,7 +21,7 @@ def build_parser():
     subcmd.required = True
 
     accuracy_parser = subcmd.add_parser('accuracy', help='reproduce the accuracy reported in papaer.')
-    accuracy_parser.add_argument('dataset', type=str)
+    accuracy_parser.add_argument('--dataset', type=str, default='Cora', help='dataset')
     accuracy_parser.add_argument('--hidden_dim', type=int, default=64, help='hidden dimension')
     accuracy_parser.add_argument('--num_head', type=int, default=8, help='number of attention head')
     accuracy_parser.add_argument('--att_dropout', type=float, default=0.6, help='dropout rate of attention')
@@ -32,13 +32,13 @@ def build_parser():
     accuracy_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
     parameter_parser = subcmd.add_parser('parameters', help='compare GAT with GCN in different number of parameters.')
-    parameter_parser.add_argument('dataset', type=str)
+    parameter_parser.add_argument('--dataset', type=str, default='Cora', help='dataset')
     parameter_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
     parameter_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
     parameter_parser.add_argument('--num_hidden_dim', nargs='+', default=[8, 16, 32, 64, 128])
 
     layers_parser = subcmd.add_parser('layers', help='train on different layers')
-    layers_parser.add_argument('dataset', type=str)
+    layers_parser.add_argument('--dataset', type=str, default='Cora', help='dataset')
     layers_parser.add_argument('--hidden_dim', type=int, default=64, help='hidden dimension')
     layers_parser.add_argument('--num_head', type=int, default=8, help='number of attention head.')
     layers_parser.add_argument('--att_dropout', type=float, default=0.6, help='dropout rate of attention')
@@ -67,7 +67,8 @@ def main():
 
     if args.subcmd == 'accuracy':
         if args.hidden_dim % args.num_head != 0:
-            raise ValueError('The value of the argument `hidden_dim` must be a multiple of the value of the argument `num_head`.')
+            raise ValueError('The value of the argument `hidden_dim` must be a multiple of the value of the argument \
+                             `num_head`.')
 
         hparams = {
             'input_dim': dataset.num_node_features,
@@ -79,14 +80,16 @@ def main():
         }
 
         histories = train_for_accuracy(model_class=GAT, hparams=hparams, data=data,
-                                       epochs=args.epochs, lr=args.lr, trials=args.trials, model_path='gat.pth')
+                                       epochs=args.epochs, lr=args.lr, trials=args.trials,
+                                       device=device, model_path='gat.pth')
         visualize_training(histories, title='GAT', save_path='gat.png')
 
     elif args.subcmd == 'parameters':
         hidden_dim_list = [int(dim) for dim in args.num_hidden_dim]
         for i, dim in enumerate(hidden_dim_list):
             if dim < 1:
-                raise ValueError(f'The {i+1}-th element of the argument `num_hidden_dim` should be a positive integer, but get the value of {dim}.')
+                raise ValueError(f'The {i+1}-th element of the argument `num_hidden_dim` should be a positive integer, \
+                                 but get the value of {dim}.')
         
         # train GCN
         hparams = {
@@ -97,7 +100,7 @@ def main():
 
         gcn_acc_list, gcn_params_list = train_for_parameters(model_class=GCN, hparams=hparams, data=data,
                                                              epochs=400, lr=0.01, hidden_dim_list=hidden_dim_list,
-                                                             trials=args.trials, model_path='gcn.pth')
+                                                             trials=args.trials, device=device, model_path='gcn.pth')
         # train GAT
         hparams = {
             'input_dim': dataset.num_node_features,
@@ -109,7 +112,7 @@ def main():
 
         gat_acc_list, gat_params_list = train_for_parameters(model_class=GAT, hparams=hparams, data=data,
                                                              epochs=1000, lr=0.005, hidden_dim_list=hidden_dim_list,
-                                                             trials=args.trials, model_path='gat.pth')
+                                                             trials=args.trials, device=device, model_path='gat.pth')
         
         plot_acc_vs_parameters(gcn_acc_list, gcn_params_list, gat_acc_list, gat_params_list, save_path='gcn_vs_gat.png')
 
@@ -135,13 +138,13 @@ def main():
         multigcn_no_residual_train_acc_list, multigcn_no_residual_val_acc_list, multigcn_no_residual_test_acc_list = \
             train_for_layers(model_class=MultiGAT, hparams=hparams, data=data,
                              epochs=args.epochs, lr=args.lr, num_layers=num_layers,
-                             trials=args.trials, model_path='multigat_no_residual.pth')
+                             trials=args.trials, device=device, model_path='multigat_no_residual.pth')
         
         hparams['residual'] = True
         multigcn_residual_train_acc_list, multigcn_residual_val_acc_list, multigcn_residual_test_acc_list = \
             train_for_layers(model_class=MultiGAT, hparams=hparams, data=data,
                              epochs=args.epochs, lr=args.lr, num_layers=num_layers,
-                             trials=args.trials, model_path='multigat_with_residual.pth')
+                             trials=args.trials, device=device, model_path='multigat_with_residual.pth')
 
         plot_acc_vs_layers(multigcn_no_residual_train_acc_list, multigcn_no_residual_test_acc_list,
                            multigcn_residual_train_acc_list, multigcn_residual_test_acc_list,

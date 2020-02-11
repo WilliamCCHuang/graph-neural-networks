@@ -52,7 +52,7 @@ def main():
     data = normalize_features(data)
 
     device = torch.device('cuda') if args.gpu else torch.device('cpu')
-    
+
     hparams = {
         'input_dim': dataset.num_node_features,
         'hidden_dim': args.hidden_dim,
@@ -70,7 +70,8 @@ def main():
         num_layers = [int(layer) for layer in args.num_layers]
         for i, layer in enumerate(num_layers):
             if layer < 1:
-                raise ValueError(f'The {i+1}-th element of the argument `num_layers` should be a positive integer, but get the value of {layer}.')
+                raise ValueError(f'The {i+1}-th element of the argument `num_layers` should be a positive integer, \
+                                 but get the value of {layer}.')
         
         hparams['residual'] = False
         multigcn_no_residual_train_acc_list, multigcn_no_residual_val_acc_list, multigcn_no_residual_test_acc_list = \

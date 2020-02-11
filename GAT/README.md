@@ -14,16 +14,34 @@ Use the following command to train a GAT model trained on Cora dataset with defa
 $ python train.py accuracy --dataset Cora  --gpu True
 ```
 
-Once the training is completed, there would be a model file and an image called `gcn.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
+You can set different dataset in the argument `--dataset` to reproduce other results. See help for more setting.
 
-![](./images/gcn.png)
+Once the training is completed, there would be a model file called `gat.pth`, and an image called `gat.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
 
-## Multi-layer GCN
+![](./images/gat.png)
 
-Use the following command to train a multi-layer GCN model with or without residual connections:
+## Compare with GCN
+
+Type the following command to run the comparison between GCN and GAT at different model parameters.
+
+```
+$ python train.py parameters --dataset Cora --gpy True
+```
+
+The above figure shows that GAT is almost better than GCN.
+
+![](./images/gcn:gat.png)
+
+## Multi-layer GAT
+
+Use the following command to train a multi-layer GAT model with or without residual connections:
 
 ```
 $ python train.py layers --dataset Cora  --gpu True
 ```
 
-![](./images/multi_gcn.png)
+It will train two GAT models, one with residual connections and the other without residual connections.
+
+Once the training is done, a image showing the different between these two models will be saved as `multi_gat.png`.
+
+![](./images/multi_gat.png)
