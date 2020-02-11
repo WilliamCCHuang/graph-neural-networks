@@ -7,6 +7,7 @@ from torch_geometric.nn import GCNConv
 class GCN(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim, dropout=0.5):
         super(GCN, self).__init__()
+        
         self.dropout = dropout
 
         self.conv1 = GCNConv(input_dim, hidden_dim)
