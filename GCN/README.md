@@ -2,7 +2,7 @@
 
 ![](./images/layer.png)
 
-## Result
+## Results
 
 | Dataset | Citeseer | Cora | Pubmed |
 | :-: | :-: | :-: | :-: |
