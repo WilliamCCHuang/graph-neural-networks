@@ -1,6 +1,6 @@
 # Graph Convolutional Networks
 
-![](./images/layer.png>)
+![](./images/layer.png)
 
 ## Reproduce
 
@@ -14,7 +14,7 @@ Use the following command to train a GCN model trained on Cora dataset with defa
 $ python train.py accuracy --dataset Cora  --gpu True
 ```
 
-Once the training is completed, there would be a model file and an image called `gcn.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
+Once the training is completed, there would be a model file called `gcn.pth`, and an image called `gcn.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
 
 ![](./images/gcn.png)
 
