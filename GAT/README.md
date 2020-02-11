@@ -2,11 +2,13 @@
 
 ![](./images/layer.jpg)
 
-## Reproduce
+## Result
 
 | Dataset | Citeseer | Cora | Pubmed |
 | :-: | :-: | :-: | :-: |
-| Accuracy | ? | 81.5 | ? |
+| Accuracy | ? | ? | ? |
+
+## Reproduce
 
 Use the following command to train a GAT model trained on Cora dataset with default parameters to reproduce the result in the paper: [Graph Attention Network](https://arxiv.org/pdf/1710.10903.pdf).
 
@@ -46,4 +48,4 @@ Once the training is done, an image showing the different between these two mode
 
 ![](./images/multi_gat.png)
 
-Like multi-layer GCN, multi-layer GAT can not get benefit by increasing its layer. However, the decrease of multi-layer GAT is smaller than that of multi GCN. It may be caused by attention mechanism. Again, there is no improvement when adding residual connections.
+Like multi-layer GCN, multi-layer GAT can not get benefit by increasing its layer. However, the decrease of multi-layer GAT is smaller than that of multi-layer GCN. It may be caused by attention mechanism. Again, there is no improvement when adding residual connections.

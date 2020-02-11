@@ -2,11 +2,13 @@
 
 ![](./images/layer.png)
 
-## Reproduce
+## Result
 
 | Dataset | Citeseer | Cora | Pubmed |
 | :-: | :-: | :-: | :-: |
 | Accuracy | ? | 81.5 | ? |
+
+## Reproduce
 
 Use the following command to train a GCN model trained on Cora dataset with default parameters to reproduce the result in the paper: [Semi-supervised Classification With Graph Convolutional Networks](https://openreview.net/pdf?id=SJU4ayYgl).
 
@@ -28,7 +30,7 @@ Use the following command to train a multi-layer GCN model with or without resid
 $ python train.py layers --dataset Cora  --gpu True
 ```
 
-It will train two GCN models, one with residual connections and the other without residual connections.
+It will train two multi-layer GCN models, one with residual connections and the other without residual connections.
 
 Once the training is done, an image showing the different between these two models will be saved as `multi_gcn.png`.
 
