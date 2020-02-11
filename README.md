@@ -1,3 +1,3 @@
 # graph-neural-networks
 
-This repo stores some gnn models.
+This repo stores some GCNN models.
