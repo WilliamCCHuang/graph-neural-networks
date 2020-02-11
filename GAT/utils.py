@@ -23,7 +23,7 @@ def load_dataset(name):
 def move_data(data, device):
     if data.x.device == device:
         return data
-        
+
     data = copy.deepcopy(data)
     
     data.x = data.x.to(device)
@@ -68,9 +68,9 @@ def train_on_epoch(model, optimizer, data):
     train_loss.backward()
     optimizer.step()
 
-    print('check')
-    print(f'data: {data.x.device}')
-    print(f'model: {next(model.parameters()).device}')
+    # print('check')
+    # print(f'data: {data.x.device}')
+    # print(f'model: {next(model.parameters()).device}')
 
     return train_loss, train_acc
 

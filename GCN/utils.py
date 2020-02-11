@@ -68,9 +68,9 @@ def train_on_epoch(model, optimizer, data):
     train_loss.backward()
     optimizer.step()
 
-    print('check')
-    print(f'data: {data.x.device}')
-    print(f'model: {next(model.parameters()).device}')
+    # print('check')
+    # print(f'data: {data.x.device}')
+    # print(f'model: {next(model.parameters()).device}')
 
     return train_loss, train_acc
 
@@ -198,7 +198,7 @@ def train_for_layers(model_class, hparams, data, epochs, lr, num_layers, trials,
 
             log = '| {}-th run | train_acc = {:.4f} | val_acc = {:.4f} | test_acc = {:.4f} |'
             tqdm.write(log.format(trial+1, train_acc.item(), val_acc.item(), test_acc.item()))
-            
+
         print('-'*72)
         train_acc_list.append(train_acc_values)
         val_acc_list.append(val_acc_values)
