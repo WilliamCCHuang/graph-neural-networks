@@ -17,7 +17,7 @@ def build_parser():
     subcmd.required = True
 
     accuracy_parser = subcmd.add_parser('accuracy', help='reproduce the accuracy reported in papaer.')
-    accuracy_parser.add_argument('dataset', type=str)
+    accuracy_parser.add_argument('--dataset', type=str, default='Cora', help='dataset')
     accuracy_parser.add_argument('--hidden_dim', type=int, default=16, help='hidden dimension')
     accuracy_parser.add_argument('--dropout', type=float, default=0.5, help='dropout rate')
     accuracy_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
@@ -25,7 +25,7 @@ def build_parser():
     accuracy_parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
     
     layers_parser = subcmd.add_parser('layers', help='train on different layers')
-    layers_parser.add_argument('dataset', type=str)
+    layers_parser.add_argument('--dataset', type=str, default='Cora', help='dataset')
     layers_parser.add_argument('--hidden_dim', type=int, default=16, help='hidden dimension')
     layers_parser.add_argument('--dropout', type=float, default=0.5, help='dropout rate')
     layers_parser.add_argument('--trials', type=int, default=5, help='number of experiments d')

@@ -1,3 +1,3 @@
 # graph-neural-networks
 
-# Test
+This repo stores some gnn models.
