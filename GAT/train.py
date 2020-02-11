@@ -1,5 +1,7 @@
 import argparse
 
+import torch
+
 from models import GCN, GAT, MultiGAT
 from utils import (
     load_dataset,
@@ -26,11 +28,13 @@ def build_parser():
     accuracy_parser.add_argument('--input_dropout', type=float, default=0.6, help='dropout rate of input')
     accuracy_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
     accuracy_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
-    accuracy_parser.add_argument('--lr', type=float, default=0.005, help='learning rate') 
+    accuracy_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
+    accuracy_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
     parameter_parser = subcmd.add_parser('parameters', help='compare GAT with GCN in different number of parameters.')
     parameter_parser.add_argument('dataset', type=str)
     parameter_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
+    parameter_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
     parameter_parser.add_argument('--num_hidden_dim', nargs='+', default=[8, 16, 32, 64, 128])
 
     layers_parser = subcmd.add_parser('layers', help='train on different layers')
@@ -41,7 +45,8 @@ def build_parser():
     layers_parser.add_argument('--input_dropout', type=float, default=0.6, help='dropout rate of input')
     layers_parser.add_argument('--trials', type=int, default=5, help='number of experiments')
     layers_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
-    layers_parser.add_argument('--lr', type=float, default=0.005, help='learning rate') 
+    layers_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
+    layers_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
     layers_parser.add_argument('--num_layers', nargs='+', default=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
     return parser
@@ -57,6 +62,8 @@ def main():
     dataset = load_dataset(args.dataset)
     data = dataset[0]
     data = normalize_features(data)
+
+    device = torch.device('cuda') if args.gpu else torch.device('cpu')
 
     if args.subcmd == 'accuracy':
         if args.hidden_dim % args.num_head != 0:

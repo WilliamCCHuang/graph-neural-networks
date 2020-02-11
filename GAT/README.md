@@ -1,6 +1,6 @@
-# Graph Convolutional Networks
+# Graph Attention Networks
 
-![](./images/layer.png)
+![](./images/layer.jpg)
 
 ## Reproduce
 
@@ -8,7 +8,7 @@
 | :-: | :-: | :-: | :-: |
 | Accuracy | ? | 81.5 | ? |
 
-Use the following command to train a GCN model trained on Cora dataset with default parameters to reproduce the result in the paper: [Semi-supervised Classification With Graph Convolutional Networks](https://openreview.net/pdf?id=SJU4ayYgl).
+Use the following command to train a GAT model trained on Cora dataset with default parameters to reproduce the result in the paper: [Graph Attention Network](https://arxiv.org/pdf/1710.10903.pdf).
 
 ```
 $ python train.py accuracy --dataset Cora  --gpu True

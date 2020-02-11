@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from tqdm.auto import tqdm
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 import torch
@@ -18,6 +18,19 @@ def load_dataset(name):
     name = name.title()
 
     return Planetoid(root=name, name=name)
+
+
+def move_data(data, device):
+    if data.x.device == device:
+        return data
+        
+    data = copy.deepcopy(data)
+    
+    data.x = data.x.to(device)
+    data.y = data.y.to(device)
+    data.edge_index = data.edge_index.to(device)
+
+    return data
 
 
 def normalize_features(data):
@@ -54,6 +67,10 @@ def train_on_epoch(model, optimizer, data):
 
     train_loss.backward()
     optimizer.step()
+
+    print('check')
+    print(f'data: {data.x.device}')
+    print(f'model: {next(model.parameters()).device}')
 
     return train_loss, train_acc
 
@@ -126,13 +143,15 @@ def train(model, data, epochs, lr, weight_decay=5e-4, model_path=None, verbose=T
     return history
 
 
-def train_for_accuracy(model_class, hparams, data, epochs, lr, trials, model_path):
+def train_for_accuracy(model_class, hparams, data, epochs, lr, trials, device, model_path):
+    data = move_data(data, device)
+
     histories = []
     acc_values = []
     for trial in tqdm(range(trials), desc='Trials'):
         print(f'\n=== The {trial+1}-th experiment ===\n')
 
-        model = model_class(**hparams)
+        model = model_class(**hparams).to(device)
         history = train(model, data, epochs, lr, model_path=model_path)
         histories.append(history)
 
@@ -149,10 +168,10 @@ def train_for_accuracy(model_class, hparams, data, epochs, lr, trials, model_pat
     return histories
 
 
-def train_for_layers(model_class, hparams, data, epochs, lr, num_layers, trials, model_path):
-    train_acc_list = []
-    val_acc_list = []
-    test_acc_list = []
+def train_for_layers(model_class, hparams, data, epochs, lr, num_layers, trials, device, model_path):
+    data = move_data(data, device)
+
+    train_acc_list, val_acc_list, test_acc_list = [], [], []
     for num_layer in tqdm(num_layers, desc='Layers'):
         hparams['num_layer'] = num_layer
         model = model_class(**hparams)
@@ -166,8 +185,8 @@ def train_for_layers(model_class, hparams, data, epochs, lr, num_layers, trials,
         val_acc_values = []
         test_acc_values = []
         for trial in tqdm(range(trials), desc='Trials', leave=False):
-            model = model_class(**hparams)
-            _ = train(model, data, epochs=epochs, lr=lr, model_path=model_path, verbose=False)
+            model = model_class(**hparams).to(device)
+            _ = train(model, data, epochs, lr, model_path=model_path, verbose=False)
 
             model.load_state_dict(torch.load(model_path))
             _, train_acc = evaluate(model, data, data.train_mask)
