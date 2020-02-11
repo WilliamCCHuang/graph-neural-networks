@@ -30,7 +30,8 @@ $ python train.py layers --dataset Cora  --gpu True
 
 It will train two GCN models, one with residual connections and the other without residual connections.
 
-Once the training is done, a image showing the different between these two models will be saved as `multi_gcn.png`.
-
+Once the training is done, an image showing the different between these two models will be saved as `multi_gcn.png`.
 
 ![](./images/multi_gcn.png)
+
+The experiment shows that the original GCN can not be stacked to get too many layers. It is even worse when layers are too many. Adding residual connections can decrease the effect, however, no increase is observed.

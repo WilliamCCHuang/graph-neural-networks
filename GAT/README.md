@@ -28,9 +28,9 @@ Type the following command to run the comparison between GCN and GAT at differen
 $ python train.py parameters --dataset Cora --gpy True
 ```
 
-The above figure shows that GAT is almost better than GCN.
-
 ![](./images/gcn:gat.png)
+
+The above figure shows that GAT is almost better than GCN.
 
 ## Multi-layer GAT
 
@@ -42,6 +42,8 @@ $ python train.py layers --dataset Cora  --gpu True
 
 It will train two GAT models, one with residual connections and the other without residual connections.
 
-Once the training is done, a image showing the different between these two models will be saved as `multi_gat.png`.
+Once the training is done, an image showing the different between these two models will be saved as `multi_gat.png`.
 
 ![](./images/multi_gat.png)
+
+Like multi-layer GCN, multi-layer GAT can not get benefit by increasing its layer. However, the decrease of multi-layer GAT is smaller than that of multi GCN. It may be caused by attention mechanism. Again, there is no improvement when adding residual connections.
