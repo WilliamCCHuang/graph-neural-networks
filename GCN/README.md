@@ -1,8 +1,6 @@
 # Graph Convolutional Networks
 
-<center>
-    <img src=./images/layer.png>
-</center>
+![](./images/layer.png>)
 
 ## Reproduce
 
