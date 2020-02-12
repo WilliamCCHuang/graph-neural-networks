@@ -4,11 +4,11 @@
 
 ## Results
 
-| Dataset | Test Accuracy |
-| :-: | :-: |
-| Cora | ? |
-| Citeseer | ? |
-| Pubmed | ? |
+| Dataset | Test Accuracy | Reported Accuracy |
+| :-: | :-: | :-: |
+| Cora | ? | 81.5 |
+| Citeseer | ? | 70.3 |
+| Pubmed | ? | 79.0 |
 
 ## Reproduce
 
