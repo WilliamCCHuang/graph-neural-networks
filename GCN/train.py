@@ -44,7 +44,7 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.dataset not in ['Citeseer', 'Cora', 'Pubmed']:
+    if args.dataset.title() not in ['Citeseer', 'Cora', 'Pubmed']:
         raise ValueError('Only \'Citeseer\', \'Cora\', \'Pubmed\' datasets are available.')
     
     dataset = load_dataset(args.dataset)
