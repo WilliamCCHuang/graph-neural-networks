@@ -15,7 +15,7 @@
 Use the following command to train a GCN model trained on Cora dataset with default parameters to reproduce the result in the paper: [Semi-supervised Classification With Graph Convolutional Networks](https://openreview.net/pdf?id=SJU4ayYgl).
 
 ```
-$ python train.py accuracy --dataset Cora  --gpu True
+$ python train.py accuracy --dataset=cora  --gpu=True
 ```
 
 You can set different dataset in the argument `--dataset` to reproduce other results. See help for more setting.
@@ -29,7 +29,7 @@ Once the training is completed, there would be a model file called `gcn.pth`, an
 Use the following command to train a multi-layer GCN model with or without residual connections:
 
 ```
-$ python train.py layers --dataset Cora  --gpu True
+$ python train.py layers --dataset=cora  --gpu=True
 ```
 
 It will train two multi-layer GCN models, one with residual connections and the other without residual connections.

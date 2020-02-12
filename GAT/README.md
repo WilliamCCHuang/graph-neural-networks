@@ -15,7 +15,7 @@
 Use the following command to train a GAT model trained on Cora dataset with default parameters to reproduce the result in the paper: [Graph Attention Network](https://arxiv.org/pdf/1710.10903.pdf).
 
 ```
-$ python train.py accuracy --dataset Cora  --gpu True
+$ python train.py accuracy --dataset=cora  --gpu=True
 ```
 
 You can set different dataset in the argument `--dataset` to reproduce other results. See help for more setting.
@@ -29,7 +29,7 @@ Once the training is completed, there would be a model file called `gat.pth`, an
 Type the following command to run the comparison between GCN and GAT at different model parameters.
 
 ```
-$ python train.py parameters --dataset Cora --gpy True
+$ python train.py parameters --dataset=cora --gpu=True
 ```
 
 ![](./images/gcn:gat.png)
@@ -41,7 +41,7 @@ The above figure shows that GAT is almost better than GCN.
 Use the following command to train a multi-layer GAT model with or without residual connections:
 
 ```
-$ python train.py layers --dataset Cora  --gpu True
+$ python train.py layers --dataset=cora  --gpu=True
 ```
 
 It will train two GAT models, one with residual connections and the other without residual connections.
