@@ -1,3 +1,4 @@
+import os
 import copy
 import numpy as np
 from tqdm import tqdm
@@ -8,6 +9,13 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 from torch_geometric.datasets import Planetoid
+
+
+def create_dirs(file_path):
+    dir_name = os.path.dirname(file_path)
+
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
 
 
 def count_params(model):
@@ -37,7 +45,7 @@ def normalize_features(data):
     data = copy.deepcopy(data)
 
     row_sum = data.x.sum(axis=-1, keepdim=True)
-    data.x = data.x / row_sum
+    data.x = data.x / (row_sum + 1e-8) # there are some data have features with all zero in Citeseer
 
     return data
 
@@ -121,6 +129,7 @@ def train(model, data, epochs, lr, weight_decay=5e-4, model_path=None, verbose=T
                                                                                val_acc.item())
             
             if model_path:
+                create_dirs(model_path)
                 torch.save(model.state_dict(), model_path)
                 log += ' save model to {}'.format(model_path)
             
@@ -240,6 +249,7 @@ def visualize_training(histories, title, save_path=None):
             plt.title(title)
 
     if save_path:
+        create_dirs(save_path)
         plt.savefig(save_path)
 
 
@@ -290,4 +300,5 @@ def plot_acc_vs_layers(no_residual_train_acc_list, no_residual_test_acc_list,
     plt.legend(framealpha=0.)
 
     if save_path:
+        create_dirs(save_path)
         plt.savefig(save_path)
