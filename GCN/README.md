@@ -22,7 +22,7 @@ You can set different dataset in the argument `--dataset` to reproduce other res
 
 Once the training is completed, there would be a model file called `gcn_{dataset}.pth`, and an image called `gcn_{dataset}.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
 
-![](./images/gcn.png)
+![](./images/gcn_cora.png)
 
 ## Multi-layer GCN
 
