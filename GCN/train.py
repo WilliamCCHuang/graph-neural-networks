@@ -78,17 +78,20 @@ def main():
         multigcn_no_residual_train_acc_list, multigcn_no_residual_val_acc_list, multigcn_no_residual_test_acc_list = \
             train_for_layers(model_class=MultiGCN, hparams=hparams, data=data,
                              epochs=args.epochs, lr=args.lr, num_layers=num_layers,
-                             trials=args.trials, device=device, model_path=f'models/multigcn_no_residual_{args.dataset.lower()}.pth')
+                             trials=args.trials, device=device,
+                             model_path=f'models/multigcn_no_residual_{args.dataset.lower()}.pth')
         
         hparams['residual'] = True
         multigcn_residual_train_acc_list, multigcn_residual_val_acc_list, multigcn_residual_test_acc_list = \
             train_for_layers(model_class=MultiGCN, hparams=hparams, data=data,
                              epochs=args.epochs, lr=args.lr, num_layers=num_layers,
-                             trials=args.trials, device=device, model_path=f'models/multigcn_with_residual_{args.dataset.lower()}.pth')
+                             trials=args.trials, device=device,
+                             model_path=f'models/multigcn_with_residual_{args.dataset.lower()}.pth')
 
         plot_acc_vs_layers(multigcn_no_residual_train_acc_list, multigcn_no_residual_test_acc_list,
                            multigcn_residual_train_acc_list, multigcn_residual_test_acc_list,
-                           num_layers=num_layers, title='Multi-GCN', save_path=f'images/multigcn_{args.dataset.lower()}.png')
+                           num_layers=num_layers, title='Multi-GCN',
+                           save_path=f'images/multigcn_{args.dataset.lower()}.png')
 
 
 if __name__ == "__main__":
