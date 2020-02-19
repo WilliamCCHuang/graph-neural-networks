@@ -6,9 +6,9 @@
 
 | Dataset | Test Accuracy | Reported Accuracy |
 | :-: | :-: | :-: |
-| Cora | ? | 81.5 |
-| Citeseer | ? | 70.3 |
-| Pubmed | ? | 79.0 |
+| Cora | 81.1 +- 0.6% | 81.5 |
+| Citeseer | 71.3 +- 0.5% | 70.3 |
+| Pubmed | 79.0 +- 0.6% | 79.0 |
 
 ## Reproduce
 
@@ -20,7 +20,7 @@ $ python train.py accuracy --dataset=cora  --gpu=True
 
 You can set different dataset in the argument `--dataset` to reproduce other results. See help for more setting.
 
-Once the training is completed, there would be a model file called `gcn.pth`, and an image called `gcn.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
+Once the training is completed, there would be a model file called `gcn_{dataset}.pth`, and an image called `gcn_{dataset}.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
 
 ![](./images/gcn.png)
 
