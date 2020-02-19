@@ -6,9 +6,9 @@
 
 | Dataset | Test Accuracy | Reported Accuracy |
 | :-: | :-: | :-: |
-| Cora | ? | 83.0 +- 0.7% |
-| Citeseer | ? | 72.5 +- 0.7% |
-| Pubmed | ? | 79.0  +- 0.3% |
+| Cora | 83.4 +- 0.3% | 83.0 +- 0.7% |
+| Citeseer | 71.6 +- 0.6% | 72.5 +- 0.7% |
+| Pubmed | 78.3 +- 0.4% | 79.0  +- 0.3% |
 
 ## Reproduce
 
@@ -20,9 +20,9 @@ $ python train.py accuracy --dataset=cora  --gpu=True
 
 You can set different dataset in the argument `--dataset` to reproduce other results. See help for more setting.
 
-Once the training is completed, there would be a model file called `gat.pth`, and an image called `gat.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
+Once the training is completed, there would be a model file called `gat_{dataset}.pth`, and an image called `gat_{dataset}.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
 
-![](./images/gat.png)
+![](./images/gat_cora.png)
 
 ## Compare with GCN
 
