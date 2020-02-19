@@ -45,7 +45,7 @@ def normalize_features(data):
     data = copy.deepcopy(data)
 
     row_sum = data.x.sum(axis=-1, keepdim=True)
-    data.x = data.x / (row_sum + 1e-8) # there are some data have features with all zero in Citeseer
+    data.x = data.x / (row_sum + 1e-8) # there are some data having features with all zero in Citeseer
 
     return data
 
