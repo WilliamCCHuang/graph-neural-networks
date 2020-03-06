@@ -6,7 +6,7 @@
 
 ![](./images/gcn.gif)
 
-1. Given a central node (blue node), perform an affine transformation on all node feature vecots of its neighbors.
+1. Given a central node (blue node), perform an affine transformation on all node feature vecots of its neighbors (gray nodes).
 2. Aggregate these new node feature vectors by weighted sum. The weights used in the weighted sum come from the topology of the given graph.
 3. Send the result of weighted sum into an activation funciton, for example, ReLU.
 4. Assign the result of the activation function to the central node.
@@ -15,7 +15,10 @@
 
 The algorithm of GCN can be written as an equation:
 
-![](./images/equation.png)
+<center>
+    <img src=./images/equation.png
+     width=300>
+</center>
 
 ## Results
 
