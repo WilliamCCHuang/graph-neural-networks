@@ -4,7 +4,7 @@
 
 ## How does GCN work?
 
-![](./images/gcn\ animation.gif)
+![](./images/gcn.gif)
 
 ## Results
 
