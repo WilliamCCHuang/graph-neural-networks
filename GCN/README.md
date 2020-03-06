@@ -17,7 +17,7 @@ The algorithm of GCN can be written as an equation:
 
 <center>
     <img src=./images/equation.png
-     width=300>
+     width=100>
 </center>
 
 ## Results
