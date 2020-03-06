@@ -13,7 +13,7 @@
 5. Aggregate these new node feature vectors by weighted sum. The weights used in the weighted sum come from the step 4.
 6. Send the result of weighted sum into an activation funciton, for example, ELU.
 7. Assign the result of the activation function to the central node.
-8. Repeat the step 1 to step 8 for all nodes in the graph.
+8. Repeat the step 1 to step 7 for all nodes in the graph.
 9. Finish when all nodes are updated.
 
 <img src=./images/weight.png
