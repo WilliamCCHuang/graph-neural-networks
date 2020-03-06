@@ -15,7 +15,7 @@
 
 The algorithm of GCN can be written as an equation:
 
-![equation](https://latex.codecogs.com/gif.latex?H%5E%7B%28l&plus;1%29%7D%20%3D%20%5Csigma%20%5Cleft%28%20%5Chat%7BA%7D%20W%5E%7B%28l%29%7D%20H%5E%7B%28l%29%7D%20%5Cright%20%29)
+![](./images/equation.png)
 
 ## Results
 
