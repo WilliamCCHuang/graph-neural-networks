@@ -2,6 +2,20 @@
 
 ![](./images/layer.jpg)
 
+## How does GAT work?
+
+![](./images/gat.gif)
+
+1. Given a central node (blue node), perform an affine transformation on all node feature vecots of its neighbors (gray nodes).
+2. Concatenate the new node feature vectors of the central node and one of its neighbor, and perform a dot product with a learnable vector to get a scalar number.
+3. Repeat the step 2 for all neighbors of the given central node.
+4. Use softmax function to normalize the scalar numbers produced in the step 3. These normalized numbers are the weights of weighted sum.
+5. Aggregate these new node feature vectors by weighted sum. The weights used in the weighted sum come from the step 4.
+6. Send the result of weighted sum into an activation funciton, for example, Leaky ReLU.
+7. Assign the result of the activation function to the central node.
+8. Repeat the step 1 to step 8 for all nodes in the graph.
+9. Finish when all nodes are updated.
+
 ## Results
 
 | Dataset | Test Accuracy | Reported Accuracy |
