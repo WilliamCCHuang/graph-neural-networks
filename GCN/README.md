@@ -6,6 +6,19 @@
 
 ![](./images/gcn.gif)
 
+1. Given a central node, perform an affine transformation on all node feature vecots of its neighbors by the weight $W^{(l)}$.
+2. Aggregate these new node feature vectors by weighted sum. The weights $\alpha_{ij}$ used in the weighted sum come from the topology of the given graph, and this topology is encoded into a matrix $\hat{A}$.
+3. Send the result of weighted sum into an activation funciton, for example, ReLU.
+4. Assign the result of the activation function to the central node.
+4. Repeat the step 1 to step 3 for all nodes in the graph.
+5. Finish when all nodes are updated.
+
+The algorithm of GCN can be written as an equation:
+
+\begin{align}
+    H^{(l+1)} = \sigma \left( \hat{A} H^{(l)} W^{(l)} \right)
+\end{align}
+
 ## Results
 
 | Dataset | Test Accuracy | Reported Accuracy |
