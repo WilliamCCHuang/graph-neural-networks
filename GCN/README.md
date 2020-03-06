@@ -15,11 +15,7 @@
 
 The algorithm of GCN can be written as an equation:
 
-\begin{align}
-    H^{(l+1)} = \sigma \left( \hat{A} H^{(l)} W^{(l)} \right)
-\end{align}
-
-![equation](http://latex.codecogs.com/gif.latex?Concentration%3D%5Cfrac%7BTotalTemplate%7D%7BTotalVolume%7D)
+![equation](http://www.sciweavers.org/tex2img.php?eq=1%2Bsin%28mc%5E2%29&bc=White&fc=Black&im=jpg&fs=12&ff=arev&edit=)
 
 ## Results
 
