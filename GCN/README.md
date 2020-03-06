@@ -15,10 +15,13 @@
 
 The algorithm of GCN can be written as an simple equation:
 
-<center>
-    <img src=./images/equation.png
-     width=200>
-</center>
+<img src=./images/equation.png
+ width=200>
+
+The weights used in the weighted sum performed at the step 2 are determined by the graph topology, as the following figure shown, and hence are not learnable, which limit GCN model to capture the relations between nodes.
+
+<img src=./images/weight.png
+ width=300>
 
 ## Results
 

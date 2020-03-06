@@ -16,6 +16,11 @@
 8. Repeat the step 1 to step 8 for all nodes in the graph.
 9. Finish when all nodes are updated.
 
+<img src=./images/weight.png
+ width=300>
+
+ Unlike GCN, in GAT, the weights used in the weighted sum performed at the step 2 are determined by node features, as the above figure shown. The weights between nodes not only have something to do with the edges but also node features, so in general, GAT has more capacity than GCN.
+
 ## Results
 
 | Dataset | Test Accuracy | Reported Accuracy |
