@@ -2,6 +2,10 @@
 
 ![](./images/layer.png)
 
+## How does GCN work?
+
+![](./images/gcn\ animation.gif)
+
 ## Results
 
 | Dataset | Test Accuracy | Reported Accuracy |
