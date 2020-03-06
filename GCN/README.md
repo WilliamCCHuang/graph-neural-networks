@@ -13,7 +13,7 @@
 4. Repeat the step 1 to step 3 for all nodes in the graph.
 5. Finish when all nodes are updated.
 
-The algorithm of GCN can be written as an equation:
+The algorithm of GCN can be written as an simple equation:
 
 <center>
     <img src=./images/equation.png
