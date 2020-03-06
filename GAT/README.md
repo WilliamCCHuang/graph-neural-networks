@@ -50,4 +50,4 @@ Once the training is done, an image showing the different between these two mode
 
 ![](./images/multi_gat.png)
 
-Like multi-layer GCN, multi-layer GAT can not get benefit by increasing its layer. However, the decrease of multi-layer GAT is smaller than that of multi-layer GCN. It may be caused by attention mechanism. Again, there is no improvement when adding residual connections.
+Like multi-layer GCN, multi-layer GAT can not get benefit by increasing its depth. However, the decrease of multi-layer GAT is smaller than that of multi-layer GCN. It may be caused by attention mechanism. Again, there is no improvement when adding residual connections.
