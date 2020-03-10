@@ -1,7 +1,22 @@
+import math
+
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torch_geometric.nn import GCNConv, GATConv
+from torch_geometric.nn import MessagePassing, GCNConv
+from torch_geometric.utils import remove_self_loops, add_self_loops, softmax
+
+
+def glorot(tensor):
+    if tensor is not None:
+        stdv = math.sqrt(6.0 / (tensor.size(-2) + tensor.size(-1)))
+        tensor.data.uniform_(-stdv, stdv)
+
+
+def zeros(tensor):
+    if tensor is not None:
+        tensor.data.fill_(0)
 
 
 class GCN(nn.Module):
@@ -25,8 +40,97 @@ class GCN(nn.Module):
         return F.log_softmax(x, dim=1)
 
 
+class GATConv(MessagePassing):
+    """
+    Modify the origin implementation of GAT so that attention weights can be saved.
+    
+    source code: https://github.com/rusty1s/pytorch_geometric/blob/master/torch_geometric/nn/conv/gat_conv.py
+    """
+
+    def __init__(self, in_channels, out_channels, heads=1, concat=True,
+                 negative_slope=0.2, dropout=0, bias=True, save_alpha=False, **kwargs):
+        super(GATConv, self).__init__(aggr='add', **kwargs)
+
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.heads = heads
+        self.concat = concat
+        self.negative_slope = negative_slope
+        self.dropout = dropout
+        self.alpha = None
+        self.save_alpha = save_alpha
+
+        self.weight = nn.Parameter(
+            torch.Tensor(in_channels, heads * out_channels))
+        self.att = nn.Parameter(torch.Tensor(1, heads, 2 * out_channels))
+
+        if bias and concat:
+            self.bias = nn.Parameter(torch.Tensor(heads * out_channels))
+        elif bias and not concat:
+            self.bias = nn.Parameter(torch.Tensor(out_channels))
+        else:
+            self.register_parameter('bias', None)
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        glorot(self.weight)
+        glorot(self.att)
+        zeros(self.bias)
+
+    def forward(self, x, edge_index, size=None):
+        if size is None and torch.is_tensor(x):
+            edge_index, _ = remove_self_loops(edge_index)
+            edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
+
+        if torch.is_tensor(x):
+            x = torch.matmul(x, self.weight)
+        else:
+            x = (None if x[0] is None else torch.matmul(x[0], self.weight),
+                 None if x[1] is None else torch.matmul(x[1], self.weight))
+
+        return self.propagate(edge_index, size=size, x=x)
+
+    def message(self, edge_index_i, x_i, x_j, size_i):
+        # Compute attention coefficients.
+        x_j = x_j.view(-1, self.heads, self.out_channels)
+        if x_i is None:
+            alpha = (x_j * self.att[:, :, self.out_channels:]).sum(dim=-1)
+        else:
+            x_i = x_i.view(-1, self.heads, self.out_channels)
+            alpha = (torch.cat([x_i, x_j], dim=-1) * self.att).sum(dim=-1)
+
+        alpha = F.leaky_relu(alpha, self.negative_slope)
+        alpha = softmax(alpha, edge_index_i, size_i)
+
+        # Sample attention coefficients stochastically.
+        alpha = F.dropout(alpha, p=self.dropout, training=self.training)
+        
+        # Save alpha
+        if self.save_alpha:
+            self.alpha = alpha.cpu()
+
+        return x_j * alpha.view(-1, self.heads, 1)
+
+    def update(self, aggr_out):
+        if self.concat is True:
+            aggr_out = aggr_out.view(-1, self.heads * self.out_channels)
+        else:
+            aggr_out = aggr_out.mean(dim=1)
+
+        if self.bias is not None:
+            aggr_out = aggr_out + self.bias
+
+        return aggr_out
+
+    def __repr__(self):
+        return '{}({}, {}, heads={})'.format(self.__class__.__name__,
+                                             self.in_channels,
+                                             self.out_channels, self.heads)
+
+
 class GAT(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_head=8, att_dropout=0.6, input_dropout=0.6):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_head=8, att_dropout=0.6, input_dropout=0.6, save_alpha=False):
         super(GAT, self).__init__()
         assert hidden_dim % num_head == 0
 
@@ -36,10 +140,12 @@ class GAT(nn.Module):
         self.conv1 = GATConv(in_channels=input_dim,
                              out_channels=hidden_dim // num_head,
                              heads=num_head,
-                             concat=True, dropout=att_dropout)
+                             concat=True, dropout=att_dropout,
+                             save_alpha=save_alpha)
         self.conv2 = GATConv(in_channels=hidden_dim,
                              out_channels=output_dim,
-                             heads=1, concat=False, dropout=att_dropout)
+                             heads=1, concat=False, dropout=att_dropout,
+                             save_alpha=save_alpha)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
