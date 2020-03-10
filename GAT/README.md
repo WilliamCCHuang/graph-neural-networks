@@ -25,9 +25,9 @@ Unlike GCN, in GAT, the weights used in the weighted sum performed at the step 2
 
 | Dataset | Test Accuracy | Reported Accuracy |
 | :-: | :-: | :-: |
-| Cora | 83.4 +- 0.3% | 83.0 +- 0.7% |
-| Citeseer | 71.6 +- 0.6% | 72.5 +- 0.7% |
-| Pubmed | 78.3 +- 0.4% | 79.0  +- 0.3% |
+| Cora | 83.4 ± 0.3% | 83.0 ± 0.7% |
+| Citeseer | 71.6 ± 0.6% | 72.5 ± 0.7% |
+| Pubmed | 78.3 ± 0.4% | 79.0  ± 0.3% |
 
 ## Reproduce
 
