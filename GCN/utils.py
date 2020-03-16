@@ -152,7 +152,7 @@ def train(model, data, epochs, lr, weight_decay=5e-4, model_path=None, verbose=T
     return history
 
 
-def train_for_accuracy(model_class, hparams, data, epochs, lr, trials, device, model_path):
+def train_for_accuracy(model_class, hparams, data, epochs, lr, l2, trials, device, model_path):
     data = move_data(data, device)
 
     histories = []
@@ -161,7 +161,7 @@ def train_for_accuracy(model_class, hparams, data, epochs, lr, trials, device, m
         print(f'\n=== The {trial+1}-th experiment ===\n')
 
         model = model_class(**hparams).to(device)
-        history = train(model, data, epochs, lr, model_path=model_path)
+        history = train(model, data, epochs=epochs, lr=lr, weight_decay=l2, model_path=model_path)
         histories.append(history)
 
         model.load_state_dict(torch.load(model_path))
@@ -177,7 +177,7 @@ def train_for_accuracy(model_class, hparams, data, epochs, lr, trials, device, m
     return histories
 
 
-def train_for_layers(model_class, hparams, data, epochs, lr, num_layers, trials, device, model_path):
+def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, trials, device, model_path):
     data = move_data(data, device)
 
     train_acc_list, val_acc_list, test_acc_list = [], [], []
@@ -195,7 +195,7 @@ def train_for_layers(model_class, hparams, data, epochs, lr, num_layers, trials,
         test_acc_values = []
         for trial in tqdm(range(trials), desc='Trials', leave=False):
             model = model_class(**hparams).to(device)
-            _ = train(model, data, epochs, lr, model_path=model_path, verbose=False)
+            _ = train(model, data, epochs=epochs, lr=lr, weight_decay=l2, , model_path=model_path, verbose=False)
 
             model.load_state_dict(torch.load(model_path))
             _, train_acc = evaluate(model, data, data.train_mask)
