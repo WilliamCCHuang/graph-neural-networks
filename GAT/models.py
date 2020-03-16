@@ -130,21 +130,22 @@ class GATConv(MessagePassing):
 
 
 class GAT(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_head=8, att_dropout=0.6, input_dropout=0.6, save_alpha=False):
+    def __init__(self, input_dim, hidden_dim, output_dim, heads_1=8, heads_2=1, att_dropout=0.6, input_dropout=0.6, save_alpha=False):
         super(GAT, self).__init__()
-        assert hidden_dim % num_head == 0
+        assert hidden_dim % heads_1 == 0
 
         self.att_dropout = att_dropout
         self.input_dropout = input_dropout
 
         self.conv1 = GATConv(in_channels=input_dim,
-                             out_channels=hidden_dim // num_head,
-                             heads=num_head,
+                             out_channels=hidden_dim // heads_1,
+                             heads=heads_1,
                              concat=True, dropout=att_dropout,
                              save_alpha=save_alpha)
         self.conv2 = GATConv(in_channels=hidden_dim,
                              out_channels=output_dim,
-                             heads=1, concat=False, dropout=att_dropout,
+                             heads=heads_2,
+                             concat=False, dropout=att_dropout,
                              save_alpha=save_alpha)
 
     def forward(self, data):
