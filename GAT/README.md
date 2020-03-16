@@ -25,18 +25,30 @@ Unlike GCN, in GAT, the weights used in the weighted sum performed at the step 2
 | Dataset | Test Accuracy | Reported Accuracy |
 | :-: | :-: | :-: |
 | Cora | 83.4 ± 0.3% | 83.0 ± 0.7% |
-| Citeseer | 71.6 ± 0.6% | 72.5 ± 0.7% |
-| Pubmed | 78.6 ± 0.3% | 79.0  ± 0.3% |
+| Citeseer | 70.7 ± 0.9% | 72.5 ± 0.7% |
+| Pubmed | 79.1 ± 0.3% | 79.0  ± 0.3% |
 
 ## Reproduce
 
-Use the following command to train a GAT model trained on Cora dataset with default parameters to reproduce the result in the paper: [Graph Attention Network](https://arxiv.org/pdf/1710.10903.pdf).
+Use the following command to train a GAT model for Cora, Citeseer, and Pubmed dataset to reproduce the results proposed in the paper: [Graph Attention Network](https://arxiv.org/pdf/1710.10903.pdf).
+
+For Cora, dataset, run the following command:
 
 ```
-$ python train.py accuracy --dataset=cora  --gpu=True
+$ python train.py accuracy --dataset cora  --heads_1 8 --heads_2 1 --lr 0.005 --l2 0.0005 --gpu True
 ```
 
-You can set different dataset in the argument `--dataset` to reproduce other results. See help for more setting.
+For Citeseer dataset, the setup is similar to the one used for Cora dataset
+
+```
+$ python train.py accuracy --dataset citeseer  --heads_1 8 --heads_2 1 --lr 0.005 --l2 0.0005 --gpu True
+```
+
+For Pubmed dataset, run the following command instead:
+
+```
+$ python train.py accuracy --dataset pubmed  --heads_1 8 --heads_2 8 --lr 0.01 --l2 0.001 --gpu True
+```
 
 Once the training is completed, there would be a model file called `gat_{dataset}.pth`, and an image called `gat_{dataset}.png` which visualizes loss and accuracy during the training. The accuracy on test set can be seen at the tail of output on your terminal.
 
@@ -47,7 +59,7 @@ Once the training is completed, there would be a model file called `gat_{dataset
 Type the following command to run the comparison between GCN and GAT at different model parameters.
 
 ```
-$ python train.py parameters --dataset=cora --gpu=True
+$ python train.py parameters --dataset cora --gpu True
 ```
 
 ![](./images/gcn:gat.png)
@@ -56,11 +68,13 @@ The above figure shows that GAT is almost better than GCN.
 
 ## Multi-layer GAT
 
-Use the following command to train a multi-layer GAT model with or without residual connections:
+Use the following command to train a multi-layer GAT model for Cora dataset with or without residual connections:
 
 ```
-$ python train.py layers --dataset=cora  --gpu=True
+$ python train.py layers --dataset cora  --gpu True
 ```
+
+You can use other datasets like Citeseer or Pubmed and see the results. The setups are similar 
 
 It will train two GAT models, one with residual connections and the other without residual connections.
 
