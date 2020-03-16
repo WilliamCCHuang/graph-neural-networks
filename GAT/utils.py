@@ -189,7 +189,7 @@ def train_for_parameters(model_class, hparams, data, epochs, lr, hidden_dim_list
         hparams['hidden_dim'] = hidden_dim
         for trial in tqdm(range(trials), desc='Trials', leave=False):
             model = model_class(**hparams).to(device)
-            _ = train(model, data, epochs=epochs, lr=lr, weight_decay=l2, model_path=model_path, verbose=False)
+            _ = train(model, data, epochs=epochs, lr=lr, model_path=model_path, verbose=False)
 
             model.load_state_dict(torch.load(model_path))
             loss, acc = evaluate(model, data, data.test_mask)
