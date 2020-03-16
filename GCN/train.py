@@ -25,6 +25,7 @@ def build_parser():
     accuracy_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
     accuracy_parser.add_argument('--epochs', type=int, default=400, help='number of epochs')
     accuracy_parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
+    accuracy_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
     accuracy_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
     
     layers_parser = subcmd.add_parser('layers', help='train on different layers')
@@ -34,6 +35,7 @@ def build_parser():
     layers_parser.add_argument('--trials', type=int, default=5, help='number of experiments d')
     layers_parser.add_argument('--epochs', type=int, default=400, help='number of epochs')
     layers_parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
+    layers_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
     layers_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
     layers_parser.add_argument('--num_layers', nargs='+')
 
@@ -62,7 +64,7 @@ def main():
 
     if args.subcmd == 'accuracy':
         histories = train_for_accuracy(model_class=GCN, hparams=hparams, data=data,
-                                       epochs=args.epochs, lr=args.lr, trials=args.trials,
+                                       epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
                                        device=device, model_path=f'models/gcn_{args.dataset}.pth')
         visualize_training(histories, title=f'GCN / {args.dataset.title()}',
                            save_path=f'images/gcn_{args.dataset.lower()}.png')
@@ -77,14 +79,14 @@ def main():
         hparams['residual'] = False
         multigcn_no_residual_train_acc_list, multigcn_no_residual_val_acc_list, multigcn_no_residual_test_acc_list = \
             train_for_layers(model_class=MultiGCN, hparams=hparams, data=data,
-                             epochs=args.epochs, lr=args.lr, num_layers=num_layers,
+                             epochs=args.epochs, lr=args.lr, l2=args.l2, num_layers=num_layers,
                              trials=args.trials, device=device,
                              model_path=f'models/multigcn_no_residual_{args.dataset.lower()}.pth')
         
         hparams['residual'] = True
         multigcn_residual_train_acc_list, multigcn_residual_val_acc_list, multigcn_residual_test_acc_list = \
             train_for_layers(model_class=MultiGCN, hparams=hparams, data=data,
-                             epochs=args.epochs, lr=args.lr, num_layers=num_layers,
+                             epochs=args.epochs, lr=args.lr, l2=args.l2, num_layers=num_layers,
                              trials=args.trials, device=device,
                              model_path=f'models/multigcn_with_residual_{args.dataset.lower()}.pth')
 
