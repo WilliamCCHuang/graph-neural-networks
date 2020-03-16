@@ -23,7 +23,8 @@ def build_parser():
     accuracy_parser = subcmd.add_parser('accuracy', help='reproduce the accuracy reported in papaer.')
     accuracy_parser.add_argument('--dataset', type=str, default='cora', help='dataset')
     accuracy_parser.add_argument('--hidden_dim', type=int, default=64, help='hidden dimension')
-    accuracy_parser.add_argument('--num_head', type=int, default=8, help='number of attention head')
+    accuracy_parser.add_argument('--heads_1', type=int, default=8, help='number heads of the first attention layer')
+    accuracy_parser.add_argument('--heads_2', type=int, default=1, help='number heads of the second attention layer')
     accuracy_parser.add_argument('--att_dropout', type=float, default=0.6, help='dropout rate of attention')
     accuracy_parser.add_argument('--input_dropout', type=float, default=0.6, help='dropout rate of input')
     accuracy_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
@@ -41,7 +42,8 @@ def build_parser():
     layers_parser = subcmd.add_parser('layers', help='train on different layers')
     layers_parser.add_argument('--dataset', type=str, default='cora', help='dataset')
     layers_parser.add_argument('--hidden_dim', type=int, default=64, help='hidden dimension')
-    layers_parser.add_argument('--num_head', type=int, default=8, help='number of attention head.')
+    layers_parser.add_argument('--heads_1', type=int, default=8, help='number heads of the first attention layer')
+    layers_parser.add_argument('--heads_2', type=int, default=1, help='number heads of the second attention layer')
     layers_parser.add_argument('--att_dropout', type=float, default=0.6, help='dropout rate of attention')
     layers_parser.add_argument('--input_dropout', type=float, default=0.6, help='dropout rate of input')
     layers_parser.add_argument('--trials', type=int, default=5, help='number of experiments')
@@ -76,7 +78,8 @@ def main():
             'input_dim': dataset.num_node_features,
             'hidden_dim': args.hidden_dim,
             'output_dim': dataset.num_classes,
-            'num_head': args.num_head,
+            'heads_1': args.heads_1,
+            'heads_2': args.heads_2,
             'att_dropout': args.att_dropout,
             'input_dropout': args.input_dropout,
         }
@@ -110,7 +113,8 @@ def main():
         hparams = {
             'input_dim': dataset.num_node_features,
             'output_dim': dataset.num_classes,
-            'num_head': 4,
+            'heads_1': 4,
+            'heads_2': 1,
             'att_dropout': 0.6,
             'input_dropout': 0.6,
         }
@@ -139,7 +143,8 @@ def main():
             'input_dim': dataset.num_node_features,
             'hidden_dim': args.hidden_dim,
             'output_dim': dataset.num_classes,
-            'num_head': args.num_head,
+            'heads_1': args.heads_1,
+            'heads_2': args.heads_2,
             'att_dropout': args.att_dropout,
             'input_dropout': args.input_dropout,
         }
