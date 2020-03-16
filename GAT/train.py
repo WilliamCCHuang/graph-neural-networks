@@ -29,6 +29,7 @@ def build_parser():
     accuracy_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
     accuracy_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
     accuracy_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
+    accuracy_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
     accuracy_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
     parameter_parser = subcmd.add_parser('parameters', help='compare GAT with GCN in different number of parameters.')
@@ -46,6 +47,7 @@ def build_parser():
     layers_parser.add_argument('--trials', type=int, default=5, help='number of experiments')
     layers_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
     layers_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
+    layers_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
     layers_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
     layers_parser.add_argument('--num_layers', nargs='+', default=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
@@ -80,7 +82,7 @@ def main():
         }
 
         histories = train_for_accuracy(model_class=GAT, hparams=hparams, data=data,
-                                       epochs=args.epochs, lr=args.lr, trials=args.trials,
+                                       epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
                                        device=device, model_path=f'models/gat_{args.dataset.lower()}.pth')
         visualize_training(histories, title=f'GAT / {args.dataset.title()}',
                            save_path=f'images/gat_{args.dataset.lower()}.png')
@@ -145,14 +147,14 @@ def main():
         hparams['residual'] = False
         multigcn_no_residual_train_acc_list, multigcn_no_residual_val_acc_list, multigcn_no_residual_test_acc_list = \
             train_for_layers(model_class=MultiGAT, hparams=hparams, data=data,
-                             epochs=args.epochs, lr=args.lr, num_layers=num_layers,
+                             epochs=args.epochs, lr=args.lr, l2=args.l2, num_layers=num_layers,
                              trials=args.trials, device=device,
                              model_path=f'models/multigat_no_residual_{args.dataset.lower()}.pth')
         
         hparams['residual'] = True
         multigcn_residual_train_acc_list, multigcn_residual_val_acc_list, multigcn_residual_test_acc_list = \
             train_for_layers(model_class=MultiGAT, hparams=hparams, data=data,
-                             epochs=args.epochs, lr=args.lr, num_layers=num_layers,
+                             epochs=args.epochs, lr=args.lr, l2=args.l2, num_layers=num_layers,
                              trials=args.trials, device=device,
                              model_path=f'models/multigat_with_residual_{args.dataset.lower()}.pth')
 
