@@ -70,9 +70,9 @@ def main():
     device = torch.device('cuda') if args.gpu else torch.device('cpu')
 
     if args.subcmd == 'accuracy':
-        if args.hidden_dim % args.num_head != 0:
+        if args.hidden_dim % args.heads_1 != 0:
             raise ValueError('The value of the argument `hidden_dim` must be a multiple of the value of the argument \
-                             `num_head`.')
+                             `heads_1`.')
 
         hparams = {
             'input_dim': dataset.num_node_features,
@@ -129,9 +129,9 @@ def main():
                                save_path=f'images/gcn_vs_gat_{args.dataset.lower()}.png')
 
     elif args.subcmd == 'layers':
-        if args.hidden_dim % args.num_head != 0:
+        if args.hidden_dim % args.heads_1 != 0:
             raise ValueError('The value of the argument `hidden_dim` must be a multiple of the value of the argument \
-                             `num_head`.')
+                             `heads_1`.')
 
         num_layers = [int(layer) for layer in args.num_layers]
         for i, layer in enumerate(num_layers):
