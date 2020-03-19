@@ -6,7 +6,8 @@ from models import GCN, GAT, MultiGAT
 from utils import (
     load_dataset,
     normalize_features,
-    train_for_accuracy,
+    train_for_citation,
+    train_for_ppi,
     train_for_parameters,
     train_for_layers,
     visualize_training,
@@ -20,18 +21,29 @@ def build_parser():
     subcmd = parser.add_subparsers(dest='subcmd', help='training scheme')
     subcmd.required = True
 
-    accuracy_parser = subcmd.add_parser('accuracy', help='reproduce the accuracy reported in papaer.')
-    accuracy_parser.add_argument('--dataset', type=str, default='cora', help='dataset')
-    accuracy_parser.add_argument('--hidden_dim', type=int, default=64, help='hidden dimension')
-    accuracy_parser.add_argument('--heads_1', type=int, default=8, help='number heads of the first attention layer')
-    accuracy_parser.add_argument('--heads_2', type=int, default=1, help='number heads of the second attention layer')
-    accuracy_parser.add_argument('--att_dropout', type=float, default=0.6, help='dropout rate of attention')
-    accuracy_parser.add_argument('--input_dropout', type=float, default=0.6, help='dropout rate of input')
-    accuracy_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
-    accuracy_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
-    accuracy_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
-    accuracy_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
-    accuracy_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
+    citation_parser = subcmd.add_parser('citation', help='reproduce the accuracy reported in paper.')
+    citation_parser.add_argument('--dataset', type=str, default='cora', help='dataset')
+    citation_parser.add_argument('--hidden_dim', type=int, default=64, help='hidden dimension')
+    citation_parser.add_argument('--heads_1', type=int, default=8, help='number heads of the first attention layer')
+    citation_parser.add_argument('--heads_2', type=int, default=1, help='number heads of the second attention layer')
+    citation_parser.add_argument('--att_dropout', type=float, default=0.6, help='dropout rate of attention')
+    citation_parser.add_argument('--input_dropout', type=float, default=0.6, help='dropout rate of input')
+    citation_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
+    citation_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
+    citation_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
+    citation_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
+    citation_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
+
+    ppi_parser = subcmd.add_parser('ppi', help='reproduce the result in PPI dataset.')
+    ppi_parser.add_argument('--hidden_dim', type=int, default=1024, help='hidden dimension')
+    ppi_parser.add_argument('--heads', nargs='+', default=[4, 4, 6], help='number of heads in each layer')
+    ppi_parser.add_argument('--att_dropout', type=float, default=0.6, help='dropout rate of attention')
+    ppi_parser.add_argument('--input_dropout', type=float, default=0.6, help='dropout rate of input')
+    ppi_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
+    ppi_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
+    ppi_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
+    ppi_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
+    ppi_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
     parameter_parser = subcmd.add_parser('parameters', help='compare GAT with GCN in different number of parameters.')
     parameter_parser.add_argument('--dataset', type=str, default='cora', help='dataset')
@@ -60,19 +72,17 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.dataset.title() not in ['Citeseer', 'Cora', 'Pubmed']:
-        raise ValueError('Only \'Citeseer\', \'Cora\', \'Pubmed\' datasets are available.')
-
-    dataset = load_dataset(args.dataset)
-    data = dataset[0]
-    data = normalize_features(data)
-
     device = torch.device('cuda') if args.gpu else torch.device('cpu')
 
-    if args.subcmd == 'accuracy':
+    if args.subcmd == 'citation':
+        if args.dataset.lower() not in ['citeseer', 'cora', 'pubmed']:
+            raise ValueError('Only \'Citeseer\', \'Cora\', \'Pubmed\' datasets are available.')
+
         if args.hidden_dim % args.heads_1 != 0:
             raise ValueError('The value of the argument `hidden_dim` must be a multiple of the value of the argument \
                              `heads_1`.')
+
+        dataset = load_dataset(args.dataset)
 
         hparams = {
             'input_dim': dataset.num_node_features,
@@ -84,11 +94,36 @@ def main():
             'input_dropout': args.input_dropout,
         }
 
-        histories = train_for_accuracy(model_class=GAT, hparams=hparams, data=data,
+        histories = train_for_citation(model_class=GAT, hparams=hparams, dataset=dataset,
                                        epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
                                        device=device, model_path=f'models/gat_{args.dataset.lower()}.pth')
         visualize_training(histories, title=f'GAT / {args.dataset.title()}',
                            save_path=f'images/gat_{args.dataset.lower()}.png')
+
+    elif args.subcmd == 'ppi':
+        for i, head in enumerate(args.heads):
+            if i < len(args.heads)-1:
+                if args.hidden_dim % head != 0:
+                    raise ValueError('The value of the argument `hidden_dim` must be a multiple of the value of the argument \
+                                     `heads`.')
+
+        datasets = load_dataset('ppi')
+
+        hparams = {
+            'input_dim': dataset.num_node_features,
+            'hidden_dim': args.hidden_dim,
+            'output_dim': dataset.num_classes,
+            'num_layer': len(args.heads)
+            'heads': args.heads,
+            'residual': True
+            'att_dropout': args.att_dropout,
+            'input_dropout': args.input_dropout,
+        }
+
+        histories = train_for_ppi(model_class=MultiGAT, hparams=hparams, datasets=datasets,
+                                  epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
+                                  device=device, model_path=f'models/gat_{args.dataset.lower()}.pth')
+        visualize_training(histories, title=f'GAT / PPI', save_path=f'images/gat_ppi.png')
 
     elif args.subcmd == 'parameters':
         hidden_dim_list = [int(dim) for dim in args.num_hidden_dim]
@@ -97,6 +132,8 @@ def main():
                 raise ValueError(f'The {i+1}-th element of the argument `num_hidden_dim` should be a positive integer, \
                                  but get the value of {dim}.')
         
+        dataset = load_dataset(args.dataset)
+
         # train GCN
         hparams = {
             'input_dim': dataset.num_node_features,
@@ -138,6 +175,8 @@ def main():
             if layer < 1:
                 raise ValueError(f'The {i+1}-th element of the argument `num_layers` should be a positive integer, \
                                  but get the value of {layer}.')
+
+        dataset = load_dataset(args.dataset)
         
         hparams = {
             'input_dim': dataset.num_node_features,
