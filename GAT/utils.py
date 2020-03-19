@@ -36,7 +36,7 @@ def load_dataset(name):
 
     if name in ['Cora', 'Citeseer', 'Pubmed']:
         return Planetoid(root=name, name=name, pre_transform=normalize_features)
-    elif: name in ['PPI', 'Ppi']:
+    elif name in ['PPI', 'Ppi']:
         datasets = []
         for split in ['train', 'val', 'test']:
             dataset = PPI(root='PPI', split=split, pre_transform=normalize_features)
@@ -56,10 +56,14 @@ def accuracy(output, labels):
 def f1_score(output, labels):
     pred = output > 0
 
-    p = labels.sum().double()
+    pred_p = pred.sum().double()
+    label_p = labels.sum().double()
     tp = (pred * labels).sum().double()
 
-    return tp / p
+    recall = tp / label_p
+    precision = tp / pred_p
+
+    return 2 * recall * precision / (recall + precision)
 
 
 def compute_mean_error(array):
@@ -76,12 +80,13 @@ def train_on_epoch(model, optimizer, dataloader, criterion, metric_func, device)
     for data in dataloader:
         data = data.to(device)
         output = model(data)
+        y = data.y
 
         mask = getattr(data, 'train_mask', None)
         
-        if mask: # for citation
+        if mask is not None: # for citation
             output = output[mask]
-            y = data.y[mask]
+            y = y[mask]
     
         train_loss = criterion(output, y)
         train_metric = metric_func(output, y)
@@ -92,11 +97,12 @@ def train_on_epoch(model, optimizer, dataloader, criterion, metric_func, device)
     return train_loss, train_metric
 
 
-def evaluate(model, dataloader, criterion, metric_func, mode):
+def evaluate(model, dataloader, criterion, metric_func, mode, device):
     assert mode in ['val', 'test'], '`mode` can only be one of `val` or `test`'
 
     model.eval()
-    data = next(iter(dataloader))
+    data = next(iter(dataloader)).to(device)
+    y = data.y
 
     mask_name = 'val_mask' if mode == 'val' else 'test_mode'
     mask = getattr(data, mask_name, None)
@@ -104,9 +110,9 @@ def evaluate(model, dataloader, criterion, metric_func, mode):
     with torch.no_grad():
         output = model(data)
 
-        if mask: # for citation
+        if mask is not None: # for citation
             output = output[mask]
-            y = data.y[mask]
+            y = y[mask]
 
         loss = criterion(output, y)
         metric = metric_func(output, y)
@@ -137,7 +143,7 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
         train_loss_values.append(train_loss.item())
         train_metric_values.append(train_metric.item())
 
-        val_loss, val_metric = evaluate(model, val_dataloader, criterion, metric_func, mode='val')
+        val_loss, val_metric = evaluate(model, val_dataloader, criterion, metric_func, mode='val', device=device)
         val_loss_values.append(val_loss.item())
         val_metric_values.append(val_metric.item())
 
@@ -190,7 +196,7 @@ def train_for_citation(model_class, hparams, dataset, epochs, lr, l2, trials, de
         histories.append(history)
 
         model.load_state_dict(torch.load(model_path))
-        loss, acc = evaluate(model, dataloaders[-1], criterion, metric_func, mode='test')
+        loss, acc = evaluate(model, dataloaders[-1], criterion, metric_func, mode='test', device=device)
         acc_values.append(acc.item())
 
         print('\ntest_loss = {:.4f}, test_acc = {:.4f}\n'.format(loss.item(), acc.item()))
@@ -211,17 +217,17 @@ def train_for_ppi(model_class, hparams, datasets, epochs, lr, l2, trials, device
         print(f'\n=== The {trial+1}-th experiment ===\n')
 
         model = model_class(**hparams).to(device)
-        criterion = nn.BCELoss()
+        criterion = nn.BCEWithLogitsLoss()
         metric_func = f1_score
 
         history = train(model, dataloaders, criterion, metric_func, epochs, lr, l2, device, model_path)
         histories.append(history)
 
         model.load_state_dict(torch.load(model_path))
-        loss, f1_score = evaluate(model, dataloaders[-1], criterion, metric_func, mode='test')
-        f1_values.append(f1_score.item())
+        loss, f1 = evaluate(model, dataloaders[-1], criterion, metric_func, mode='test', device=device)
+        f1_values.append(f1.item())
 
-        print('\ntest_loss = {:.4f}, test_f1 = {:.4f}\n'.format(loss.item(), f1_score.item()))
+        print('\ntest_loss = {:.4f}, test_f1 = {:.4f}\n'.format(loss.item(), f1.item()))
     
     mean, std = compute_mean_error(f1_values)
     print('=== Final result ===\n')
@@ -320,7 +326,7 @@ def visualize_training(histories, title, metric_name, save_path=None):
                              color=c, alpha=0.2)
         plt.legend()
         plt.xlabel('epoch')
-        plt.ylabel(metric_name)
+        plt.ylabel(metric)
         if metric == 'loss':
             plt.ylim(0.0, 2.0)
         else:
