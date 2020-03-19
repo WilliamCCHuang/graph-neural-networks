@@ -189,15 +189,22 @@ class GATBlock(nn.Module):
 
 
 class MultiGAT(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layer, num_head=8, residual=False, att_dropout=0.6, input_dropout=0.6):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layer, heads=8, residual=False, att_dropout=0.6, input_dropout=0.6):
         super(MultiGAT, self).__init__()
-        assert hidden_dim % num_head == 0
+        if isinstance(heads, int):
+            heads = [heads] * (num_layer - 1) + [1]
+        
+        for i, head in enumerate(heads):
+            if i < len(heads)-1:
+                if hidden_dim % head != 0:
+                    raise ValueError('The value of the argument `hidden_dim` must be a multiple of the value of the argument \
+                                     `heads`.')
 
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
         self.num_layer = num_layer
-        self.heads = num_head
+        self.heads = heads
         self.residual = residual
         self.att_dropout = att_dropout
         self.input_dropout = input_dropout
@@ -210,8 +217,8 @@ class MultiGAT(nn.Module):
             input_dim_ = self.input_dim if i == 0 else self.hidden_dim
             residual_ = self.residual and (input_dim_ == self.hidden_dim)
             layers.append(GATBlock(input_dim=input_dim_,
-                                   output_dim=self.hidden_dim // self.heads,
-                                   heads=self.heads, concat=True,
+                                   output_dim=self.hidden_dim // self.heads[i],
+                                   heads=self.heads[i], concat=True,
                                    residual=residual_,
                                    att_dropout=self.att_dropout,
                                    input_dropout=self.input_dropout))
@@ -221,7 +228,7 @@ class MultiGAT(nn.Module):
         input_dim_ = self.input_dim if self.num_layer == 1 else self.hidden_dim
         conv = GATConv(in_channels=input_dim_,
                        out_channels=self.output_dim,
-                       heads=1, concat=False, dropout=self.att_dropout)
+                       heads=self.heads[-1], concat=False, dropout=self.att_dropout)
         
         return nn.Sequential(*layers), dropout, conv
 
