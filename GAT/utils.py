@@ -5,10 +5,12 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 import torch
+import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from torch_geometric.datasets import Planetoid
+from torch_geometric.data import DataLoader
+from torch_geometric.datasets import Planetoid, PPI
 
 
 def create_dirs(file_path):
@@ -22,33 +24,26 @@ def count_params(model):
     return sum(p.numel() for p in model.parameters())
 
 
-def load_dataset(name):
-    name = name.title()
-
-    return Planetoid(root=name, name=name)
-
-
-def move_data(data, device):
-    if data.x.device == device:
-        return data
-
-    data = copy.deepcopy(data)
-    
-    data.x = data.x.to(device)
-    data.y = data.y.to(device)
-    data.edge_index = data.edge_index.to(device)
-
-    return data
-
-
 def normalize_features(data):
-    data = copy.deepcopy(data)
-
     row_sum = data.x.sum(axis=-1, keepdim=True)
     data.x = data.x / (row_sum + 1e-8) # there are some data having features with all zero in Citeseer
 
     return data
 
+
+def load_dataset(name):
+    name = name.title()
+
+    if name in ['Cora', 'Citeseer', 'Pubmed']:
+        return Planetoid(root=name, name=name, pre_transform=normalize_features)
+    elif: name in ['PPI', 'Ppi']:
+        datasets = []
+        for split in ['train', 'val', 'test']:
+            dataset = PPI(root='PPI', split=split, pre_transform=normalize_features)
+            datasets.append(dataset)
+        
+        return datasets
+        
 
 def accuracy(output, labels):
     _, pred = output.max(dim=1)
@@ -58,6 +53,15 @@ def accuracy(output, labels):
     return correct / len(labels)
 
 
+def f1_score(output, labels):
+    pred = output > 0
+
+    p = labels.sum().double()
+    tp = (pred * labels).sum().double()
+
+    return tp / p
+
+
 def compute_mean_error(array):
     mean = np.mean(array)
     std = np.std(array)
@@ -65,68 +69,82 @@ def compute_mean_error(array):
     return mean, std
 
 
-def train_on_epoch(model, optimizer, data):
+def train_on_epoch(model, optimizer, dataloader, criterion, metric_func, device):
     model.train()
     optimizer.zero_grad()
-    output = model(data)
 
-    train_loss = F.nll_loss(output[data.train_mask], data.y[data.train_mask])
-    train_acc = accuracy(output[data.train_mask], data.y[data.train_mask])
+    for data in dataloader:
+        data = data.to(device)
+        output = model(data)
 
-    train_loss.backward()
-    optimizer.step()
+        mask = getattr(data, 'train_mask', None)
+        
+        if mask: # for citation
+            output = output[mask]
+            y = data.y[mask]
+    
+        train_loss = criterion(output, y)
+        train_metric = metric_func(output, y)
 
-    # print('check')
-    # print(f'data: {data.x.device}')
-    # print(f'model: {next(model.parameters()).device}')
+        train_loss.backward()
+        optimizer.step()
 
-    return train_loss, train_acc
+    return train_loss, train_metric
 
 
-def evaluate(model, data, mask):
+def evaluate(model, dataloader, criterion, metric_func, mode):
+    assert mode in ['val', 'test'], '`mode` can only be one of `val` or `test`'
+
     model.eval()
+    data = next(iter(dataloader))
+
+    mask_name = 'val_mask' if mode == 'val' else 'test_mode'
+    mask = getattr(data, mask_name, None)
 
     with torch.no_grad():
         output = model(data)
-        loss = F.nll_loss(output[mask], data.y[mask])
-        acc = accuracy(output[mask], data.y[mask])
 
-    return loss, acc
+        if mask: # for citation
+            output = output[mask]
+            y = data.y[mask]
+
+        loss = criterion(output, y)
+        metric = metric_func(output, y)
+
+    return loss, metric
 
 
-def train(model, data, epochs, lr, weight_decay=5e-4, model_path=None, verbose=True):
-    if not model_path:
+def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, device, model_path=None, verbose=True):
+    if model_path is None:
         print('Warning: you must assign `model_path` to save model.\n')
     
+    train_dataloader, val_dataloader, _ = dataloaders
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-    train_loss_values, train_acc_values = [], []
-    val_loss_values, val_acc_values = [], []
+    train_loss_values, train_metric_values = [], []
+    val_loss_values, val_metric_values = [], []
 
     best = np.inf
     bad_counter = 0
     for epoch in tqdm(range(epochs), desc='Training', leave=verbose):
         if epoch == 0:
-            print('       |     Trainging     |     Validation     |')
-            print('       |-------------------|--------------------|')
-            print(' Epoch |  loss    accuracy |  loss    accuracy  |')
-            print('-------|-------------------|--------------------|')
+            print('       |    Trainging     |    Validation    |')
+            print('       |------------------|------------------|')
+            print(' Epoch |  loss    metric  |  loss    metric  |')
+            print('-------|------------------|------------------|')
 
-        train_loss, train_acc = train_on_epoch(model, optimizer, data)
+        train_loss, train_metric = train_on_epoch(model, optimizer, train_dataloader, criterion, metric_func, device)
         train_loss_values.append(train_loss.item())
-        train_acc_values.append(train_acc.item())
+        train_metric_values.append(train_metric.item())
 
-        val_loss, val_acc = evaluate(model, data, data.val_mask)
+        val_loss, val_metric = evaluate(model, val_dataloader, criterion, metric_func, mode='val')
         val_loss_values.append(val_loss.item())
-        val_acc_values.append(val_acc.item())
+        val_metric_values.append(val_metric.item())
 
         if val_loss_values[-1] < best:
             bad_counter = 0
-            log = '  {:3d}  | {:.4f}    {:.4f}  | {:.4f}    {:.4f}   |'.format(epoch+1,
-                                                                               train_loss.item(),
-                                                                               train_acc.item(),
-                                                                               val_loss.item(),
-                                                                               val_acc.item())
+            log = '  {:3d}  | {:.4f}    {:.4f} | {:.4f}    {:.4f} |'
+            log = log.format(epoch+1, train_loss.item(), train_metric.item(), val_loss.item(), val_metric.item())
             
             if model_path:
                 create_dirs(model_path)
@@ -145,15 +163,19 @@ def train(model, data, epochs, lr, weight_decay=5e-4, model_path=None, verbose=T
     history = {
         'train_loss': train_loss_values,
         'val_loss': val_loss_values,
-        'train_acc': train_acc_values,
-        'val_acc': val_acc_values
+        'train_metric': train_metric_values,
+        'val_metric': val_metric_values
     }
 
     return history
 
 
-def train_for_accuracy(model_class, hparams, data, epochs, lr, l2, trials, device, model_path):
-    data = move_data(data, device)
+def train_for_citation(model_class, hparams, dataset, epochs, lr, l2, trials, device, model_path):
+    dataloaders = [
+        DataLoader(dataset, batch_size=1),
+        DataLoader(dataset, batch_size=1),
+        DataLoader(dataset, batch_size=1)
+    ]
 
     histories = []
     acc_values = []
@@ -161,16 +183,47 @@ def train_for_accuracy(model_class, hparams, data, epochs, lr, l2, trials, devic
         print(f'\n=== The {trial+1}-th experiment ===\n')
 
         model = model_class(**hparams).to(device)
-        history = train(model, data, epochs=epochs, lr=lr, weight_decay=l2, model_path=model_path)
+        criterion = nn.CrossEntropyLoss()
+        metric_func = accuracy
+
+        history = train(model, dataloaders, criterion, metric_func, epochs, lr, l2, device, model_path)
         histories.append(history)
 
         model.load_state_dict(torch.load(model_path))
-        loss, acc = evaluate(model, data, data.test_mask)
+        loss, acc = evaluate(model, dataloaders[-1], criterion, metric_func, mode='test')
         acc_values.append(acc.item())
 
         print('\ntest_loss = {:.4f}, test_acc = {:.4f}\n'.format(loss.item(), acc.item()))
     
     mean, std = compute_mean_error(acc_values)
+    print('=== Final result ===\n')
+    print('{:.1f} +- {:.1f}%'.format(mean * 100.0, std * 100.0))
+
+    return histories
+
+
+def train_for_ppi(model_class, hparams, datasets, epochs, lr, l2, trials, device, model_path):
+    dataloaders = [DataLoader(dataset, batch_size=2) for dataset in datasets]
+
+    histories = []
+    f1_values = []
+    for trial in tqdm(range(trials), desc='Trials'):
+        print(f'\n=== The {trial+1}-th experiment ===\n')
+
+        model = model_class(**hparams).to(device)
+        criterion = nn.BCELoss()
+        metric_func = f1_score
+
+        history = train(model, dataloaders, criterion, metric_func, epochs, lr, l2, device, model_path)
+        histories.append(history)
+
+        model.load_state_dict(torch.load(model_path))
+        loss, f1_score = evaluate(model, dataloaders[-1], criterion, metric_func, mode='test')
+        f1_values.append(f1_score.item())
+
+        print('\ntest_loss = {:.4f}, test_f1 = {:.4f}\n'.format(loss.item(), f1_score.item()))
+    
+    mean, std = compute_mean_error(f1_values)
     print('=== Final result ===\n')
     print('{:.1f} +- {:.1f}%'.format(mean * 100.0, std * 100.0))
 
@@ -192,7 +245,7 @@ def train_for_parameters(model_class, hparams, data, epochs, lr, hidden_dim_list
             _ = train(model, data, epochs=epochs, lr=lr, model_path=model_path, verbose=False)
 
             model.load_state_dict(torch.load(model_path))
-            loss, acc = evaluate(model, data, data.test_mask)
+            loss, acc = citation_evaluate(model, data, data.test_mask)
             acc_values.append(acc.item())
 
             tqdm.write('{:2d}-th run: test_loss = {:.4f} test_acc = {:.4f}\n'.format(trial+1, loss.item(), acc.item()))
@@ -224,11 +277,11 @@ def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, tri
             _ = train(model, data, epochs=epochs, lr=lr, weight_decay=l2, model_path=model_path, verbose=False)
 
             model.load_state_dict(torch.load(model_path))
-            _, train_acc = evaluate(model, data, data.train_mask)
+            _, train_acc = citation_evaluate(model, data, data.train_mask)
             train_acc_values.append(train_acc.item())
-            _, val_acc = evaluate(model, data, data.val_mask)
+            _, val_acc = citation_evaluate(model, data, data.val_mask)
             val_acc_values.append(val_acc.item())
-            _, test_acc = evaluate(model, data, data.test_mask)
+            _, test_acc = citation_evaluate(model, data, data.test_mask)
             test_acc_values.append(test_acc.item())
 
             tqdm.write('| {}-th run | train_acc = {:.4f} | val_acc = {:.4f} | test_acc = {:.4f} |'.format(trial+1,
@@ -243,13 +296,13 @@ def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, tri
     return train_acc_list, val_acc_list, test_acc_list
 
 
-def visualize_training(histories, title, save_path=None):
+def visualize_training(histories, title, metric_name, save_path=None):
     plt.figure(figsize=(13, 4))
-    for i, metric in enumerate(['loss', 'acc']):
+    for i, metric in enumerate(['loss', metric_name]):
         plt.subplot(1, 2, i+1)
 
-        train_key = 'train_loss' if metric == 'loss' else 'train_acc'
-        val_key = 'val_loss' if metric == 'loss' else 'val_acc'
+        train_key = 'train_loss' if metric == 'loss' else 'train_metric'
+        val_key = 'val_loss' if metric == 'loss' else 'val_metric'
         
         train_values = np.array([history[train_key] for history in histories])
         val_values = np.array([history[val_key] for history in histories])
@@ -267,7 +320,7 @@ def visualize_training(histories, title, save_path=None):
                              color=c, alpha=0.2)
         plt.legend()
         plt.xlabel('epoch')
-        plt.ylabel(metric)
+        plt.ylabel(metric_name)
         if metric == 'loss':
             plt.ylim(0.0, 2.0)
         else:
