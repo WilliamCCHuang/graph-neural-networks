@@ -37,12 +37,12 @@ def build_parser():
     ppi_parser = subcmd.add_parser('ppi', help='reproduce the result in PPI dataset.')
     ppi_parser.add_argument('--hidden_dim', type=int, default=1024, help='hidden dimension')
     ppi_parser.add_argument('--heads', nargs='+', default=[4, 4, 6], help='number of heads in each layer')
-    ppi_parser.add_argument('--att_dropout', type=float, default=0.6, help='dropout rate of attention')
-    ppi_parser.add_argument('--input_dropout', type=float, default=0.6, help='dropout rate of input')
+    ppi_parser.add_argument('--att_dropout', type=float, default=0.0, help='dropout rate of attention')
+    ppi_parser.add_argument('--input_dropout', type=float, default=0.0, help='dropout rate of input')
     ppi_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
     ppi_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
     ppi_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
-    ppi_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
+    ppi_parser.add_argument('--l2', type=float, default=0.0, help='weight decay')
     ppi_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
     parameter_parser = subcmd.add_parser('parameters', help='compare GAT with GCN in different number of parameters.')
@@ -98,7 +98,7 @@ def main():
                                        epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
                                        device=device, model_path=f'models/gat_{args.dataset.lower()}.pth')
         visualize_training(histories, title=f'GAT / {args.dataset.title()}',
-                           save_path=f'images/gat_{args.dataset.lower()}.png')
+                           metric_name='accuracy', save_path=f'images/gat_{args.dataset.lower()}.png')
 
     elif args.subcmd == 'ppi':
         for i, head in enumerate(args.heads):
@@ -110,20 +110,20 @@ def main():
         datasets = load_dataset('ppi')
 
         hparams = {
-            'input_dim': dataset.num_node_features,
+            'input_dim': datasets[0].num_node_features,
             'hidden_dim': args.hidden_dim,
-            'output_dim': dataset.num_classes,
-            'num_layer': len(args.heads)
+            'output_dim': datasets[0].num_classes,
+            'num_layer': len(args.heads),
             'heads': args.heads,
-            'residual': True
+            'residual': True,
             'att_dropout': args.att_dropout,
             'input_dropout': args.input_dropout,
         }
 
         histories = train_for_ppi(model_class=MultiGAT, hparams=hparams, datasets=datasets,
                                   epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
-                                  device=device, model_path=f'models/gat_{args.dataset.lower()}.pth')
-        visualize_training(histories, title=f'GAT / PPI', save_path=f'images/gat_ppi.png')
+                                  device=device, model_path=f'models/gat_ppi.pth')
+        visualize_training(histories, title=f'GAT / PPI', metric_name='f1-score', save_path=f'images/gat_ppi.png')
 
     elif args.subcmd == 'parameters':
         hidden_dim_list = [int(dim) for dim in args.num_hidden_dim]
