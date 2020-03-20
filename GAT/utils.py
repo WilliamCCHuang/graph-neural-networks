@@ -26,6 +26,7 @@ def count_params(model):
 
 def normalize_features(data):
     row_sum = data.x.sum(axis=-1, keepdim=True)
+    row_sum = torch.abs(row_sum)
     data.x = data.x / (row_sum + 1e-8) # there are some data having features with all zero in Citeseer
 
     return data
@@ -53,15 +54,15 @@ def accuracy(output, labels):
     return correct / len(labels)
 
 
-def f1_score(output, labels):
-    pred = output > 0
+def f1_score(logits, labels):
+    preds = logits > 0
 
-    pred_p = pred.sum().double()
-    label_p = labels.sum().double()
-    tp = (pred * labels).sum().double()
+    preds_p = preds.sum().double()
+    labels_p = labels.sum().double()
+    tp = (preds * labels).sum().double()
 
-    recall = tp / label_p
-    precision = tp / pred_p
+    recall = tp / labels_p
+    precision = tp / preds_p
 
     return 2 * recall * precision / (recall + precision)
 
