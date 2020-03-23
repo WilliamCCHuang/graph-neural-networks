@@ -181,22 +181,23 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
         val_loss_values.append(val_loss.item())
         val_metric_values.append(val_metric.item())
 
+        log = '  {:3d}  | {:.4f}    {:.4f} | {:.4f}    {:.4f} |'
+        log = log.format(epoch+1, train_loss.item(), train_metric.item(), val_loss.item(), val_metric.item())
+
         if val_loss_values[-1] < best:
             bad_counter = 0
-            log = '  {:3d}  | {:.4f}    {:.4f} | {:.4f}    {:.4f} |'
-            log = log.format(epoch+1, train_loss.item(), train_metric.item(), val_loss.item(), val_metric.item())
             
             if model_path:
                 create_dirs(model_path)
                 torch.save(model.state_dict(), model_path)
                 log += ' save model to {}'.format(model_path)
-            
-            if verbose:
-                tqdm.write(log)
 
             best = val_loss_values[-1]
         else:
             bad_counter += 1
+
+        if verbose:
+            tqdm.write(log)
 
     print('-------------------------------------------------')
 
