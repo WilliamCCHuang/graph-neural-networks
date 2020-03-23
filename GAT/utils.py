@@ -52,7 +52,7 @@ class StandardScaler():
             raise RuntimeError('Need to fit data first.')
 
 
-def preprocess(data, scaler=None):
+def preprocess_data(data, scaler=None):
     if scaler:
         if not scaler.fitted:
             scaler.fit(data.x)
@@ -66,14 +66,14 @@ def load_dataset(name):
     name = name.lower()
 
     if name in ['cora', 'citeseer', 'pubmed']:
-        return Planetoid(root=name, name=name, pre_transform=preprocess)
+        return Planetoid(root=name, name=name, pre_transform=preprocess_data)
     elif name == 'ppi':
         scaler = StandardScaler()
-        preprocess = partial(preprocess, scaler=scaler)
+        preprocess_data_with_sclaer = partial(preprocess_data, scaler=scaler)
 
         datasets = []
         for split in ['train', 'val', 'test']:
-            dataset = PPI(root='PPI', split=split, pre_transform=preprocess)
+            dataset = PPI(root='PPI', split=split, pre_transform=preprocess_data_with_sclaer)
             datasets.append(dataset)
         
         return datasets
