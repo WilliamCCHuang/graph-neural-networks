@@ -69,11 +69,11 @@ def load_dataset(name):
         return Planetoid(root=name, name=name, pre_transform=preprocess_data)
     elif name == 'ppi':
         scaler = StandardScaler()
-        preprocess_data_with_sclaer = partial(preprocess_data, scaler=scaler)
+        preprocess_data_with_scaler = partial(preprocess_data, scaler=scaler)
 
         datasets = []
         for split in ['train', 'val', 'test']:
-            dataset = PPI(root='PPI', split=split, pre_transform=preprocess_data_with_sclaer)
+            dataset = PPI(root='PPI', split=split, pre_transform=preprocess_data_with_scaler)
             datasets.append(dataset)
         
         return datasets
