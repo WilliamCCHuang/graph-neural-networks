@@ -109,18 +109,28 @@ def main():
 
         datasets = load_dataset('ppi')
 
+        # hparams = {
+        #     'input_dim': datasets[0].num_node_features,
+        #     'hidden_dim': args.hidden_dim,
+        #     'output_dim': datasets[0].num_classes,
+        #     'num_layer': len(args.heads),
+        #     'heads': args.heads,
+        #     'residual': True,
+        #     'att_dropout': args.att_dropout,
+        #     'input_dropout': args.input_dropout,
+        # }
+
         hparams = {
             'input_dim': datasets[0].num_node_features,
             'hidden_dim': args.hidden_dim,
             'output_dim': datasets[0].num_classes,
-            'num_layer': len(args.heads),
-            'heads': args.heads,
-            'residual': True,
+            'heads_1': 8,
+            'heads_2': 8,
             'att_dropout': args.att_dropout,
             'input_dropout': args.input_dropout,
         }
 
-        histories = train_for_ppi(model_class=MultiGAT, hparams=hparams, datasets=datasets,
+        histories = train_for_ppi(model_class=GAT, hparams=hparams, datasets=datasets,
                                   epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
                                   device=device, model_path=f'pretrained_models/gat_ppi.pth')
         visualize_training(histories, title=f'GAT / PPI', metric_name='f1-score', save_path=f'images/gat_ppi.png')
