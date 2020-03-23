@@ -96,7 +96,7 @@ def main():
 
         histories = train_for_citation(model_class=GAT, hparams=hparams, dataset=dataset,
                                        epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
-                                       device=device, model_path=f'models/gat_{args.dataset.lower()}.pth')
+                                       device=device, model_path=f'pretrained_models/gat_{args.dataset.lower()}.pth')
         visualize_training(histories, title=f'GAT / {args.dataset.title()}',
                            metric_name='accuracy', save_path=f'images/gat_{args.dataset.lower()}.png')
 
@@ -122,7 +122,7 @@ def main():
 
         histories = train_for_ppi(model_class=MultiGAT, hparams=hparams, datasets=datasets,
                                   epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
-                                  device=device, model_path=f'models/gat_ppi.pth')
+                                  device=device, model_path=f'pretrained_models/gat_ppi.pth')
         visualize_training(histories, title=f'GAT / PPI', metric_name='f1-score', save_path=f'images/gat_ppi.png')
 
     elif args.subcmd == 'parameters':
@@ -141,11 +141,10 @@ def main():
             'dropout': 0.5
         }
 
-        gcn_acc_list, gcn_params_list = \
-            train_for_parameters(model_class=GCN, hparams=hparams, data=data,
-                                 epochs=400, lr=0.01, hidden_dim_list=hidden_dim_list,
-                                 trials=args.trials, device=device,
-                                 model_path=f'models/gcn_{args.dataset.lower()}.pth')
+        gcn_acc_list, gcn_params_list = train_for_parameters(model_class=GCN, hparams=hparams, data=data,
+                                                             epochs=400, lr=0.01, hidden_dim_list=hidden_dim_list,
+                                                             trials=args.trials, device=device,
+                                                             model_path=f'models/gcn_{args.dataset.lower()}.pth')
         # train GAT
         hparams = {
             'input_dim': dataset.num_node_features,
@@ -156,11 +155,10 @@ def main():
             'input_dropout': 0.6,
         }
 
-        gat_acc_list, gat_params_list = \
-            train_for_parameters(model_class=GAT, hparams=hparams, data=data,
-                                 epochs=1000, lr=0.005, hidden_dim_list=hidden_dim_list,
-                                 trials=args.trials, device=device,
-                                 model_path=f'models/gat_{args.dataset.lower()}.pth')
+        gat_acc_list, gat_params_list = train_for_parameters(model_class=GAT, hparams=hparams, data=data,
+                                                             epochs=1000, lr=0.005, hidden_dim_list=hidden_dim_list,
+                                                             trials=args.trials, device=device,
+                                                             model_path=f'pretrained_models/gat_{args.dataset.lower()}.pth')
         
         plot_acc_vs_parameters(gcn_acc_list, gcn_params_list, gat_acc_list, gat_params_list,
                                save_path=f'images/gcn_vs_gat_{args.dataset.lower()}.png')
@@ -193,14 +191,14 @@ def main():
             train_for_layers(model_class=MultiGAT, hparams=hparams, data=data,
                              epochs=args.epochs, lr=args.lr, l2=args.l2, num_layers=num_layers,
                              trials=args.trials, device=device,
-                             model_path=f'models/multigat_no_residual_{args.dataset.lower()}.pth')
+                             model_path=f'pretrained_models/multigat_no_residual_{args.dataset.lower()}.pth')
         
         hparams['residual'] = True
         multigcn_residual_train_acc_list, multigcn_residual_val_acc_list, multigcn_residual_test_acc_list = \
             train_for_layers(model_class=MultiGAT, hparams=hparams, data=data,
                              epochs=args.epochs, lr=args.lr, l2=args.l2, num_layers=num_layers,
                              trials=args.trials, device=device,
-                             model_path=f'models/multigat_with_residual_{args.dataset.lower()}.pth')
+                             model_path=f'pretrained_models/multigat_with_residual_{args.dataset.lower()}.pth')
 
         plot_acc_vs_layers(multigcn_no_residual_train_acc_list, multigcn_no_residual_test_acc_list,
                            multigcn_residual_train_acc_list, multigcn_residual_test_acc_list,
