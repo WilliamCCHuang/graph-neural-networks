@@ -39,43 +39,43 @@ class StandardScaler():
         self.std = None
         self.fitted = False
 
-    def fit(self, x):
-        self.mean = x.mean(dim=0, keepdim=True) # (1, num_features)
-        self.std = x.std(dim=0, keepdim=True) # (1, num_features)
+    def fit(self, dataset):
+        total_x_list = [data.x for data in dataset]
+        total_x_tensor = torch.cat(total_x_list, dim=0) 
+        
+        self.mean = total_x_tensor.mean(dim=0, keepdim=True) # (1, num_features)
+        self.std = total_x_tensor.std(dim=0, keepdim=True) # (1, num_features)
 
         self.fitted = True
 
-    def transform(self, x):
+    def transform(self, dataset):
         if self.fitted:
-            return (x - self.mean) / self.std
+            for i in range(len(dataset)):
+                dataset[i].x = (dataset[i].x - self.mean) / self.std
+
+            return dataset
         else:
             raise RuntimeError('Need to fit data first.')
-
-
-def preprocess_data(data, scaler=None):
-    if scaler:
-        if not scaler.fitted:
-            scaler.fit(data.x)
-
-        data.x = scaler.transform(data.x)
-
-    return normalize_features(data)
 
 
 def load_dataset(name):
     name = name.lower()
 
     if name in ['cora', 'citeseer', 'pubmed']:
-        return Planetoid(root=name, name=name, pre_transform=preprocess_data)
+        return Planetoid(root=name, name=name, pre_transform=normalize_features)
     elif name == 'ppi':
         scaler = StandardScaler()
-        preprocess_data_with_scaler = partial(preprocess_data, scaler=scaler)
-
         datasets = []
         for split in ['train', 'val', 'test']:
-            dataset = PPI(root='PPI', split=split, pre_transform=preprocess_data_with_scaler)
+            dataset = PPI(root='PPI', split=split)
+
+            if split == 'train':
+                scaler.fit(dataset)
+            
+            dataset = scaler.transform(dataset)
+
             datasets.append(dataset)
-        
+            
         return datasets
         
 
