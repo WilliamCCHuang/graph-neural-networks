@@ -37,7 +37,6 @@ class GCN(nn.Module):
         x = F.dropout(x, p=self.dropout, training=self.training)
         x = self.conv2(x, edge_index)
 
-        # return F.log_softmax(x, dim=1)
         return x
 
 
@@ -141,12 +140,14 @@ class GAT(nn.Module):
         self.conv1 = GATConv(in_channels=input_dim,
                              out_channels=hidden_dim // heads_1,
                              heads=heads_1,
-                             concat=True, dropout=att_dropout,
+                             concat=True,
+                             dropout=att_dropout,
                              save_alpha=save_alpha)
         self.conv2 = GATConv(in_channels=hidden_dim,
                              out_channels=output_dim,
                              heads=heads_2,
-                             concat=False, dropout=att_dropout,
+                             concat=False,
+                             dropout=att_dropout,
                              save_alpha=save_alpha)
 
     def forward(self, data):
@@ -158,12 +159,11 @@ class GAT(nn.Module):
         x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.conv2(x, edge_index)
 
-        # return F.log_softmax(x, dim=1)
         return x
 
 
 class GATBlock(nn.Module):
-    def __init__(self, input_dim, output_dim, heads, concat, residual, att_dropout, input_dropout):
+    def __init__(self, input_dim, output_dim, heads, concat, residual, att_dropout, input_dropout, save_alpha=False):
         super(GATBlock, self).__init__()
 
         self.residual = residual
@@ -171,7 +171,10 @@ class GATBlock(nn.Module):
         self.dropout = nn.Dropout(input_dropout)
         self.conv = GATConv(in_channels=input_dim,
                             out_channels=output_dim,
-                            heads=heads, concat=concat, dropout=att_dropout)
+                            heads=heads,
+                            concat=concat,
+                            dropout=att_dropout,
+                            save_alpha=save_alpha)
         self.elu = nn.ELU(inplace=True)
 
     def forward(self, input):
@@ -189,7 +192,7 @@ class GATBlock(nn.Module):
 
 
 class MultiGAT(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layer, heads=8, residual=False, att_dropout=0.6, input_dropout=0.6):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layer, heads=8, residual=False, att_dropout=0.6, input_dropout=0.6, save_alpha=False):
         super(MultiGAT, self).__init__()
         if isinstance(heads, int):
             heads = [heads] * (num_layer - 1) + [1]
@@ -208,6 +211,7 @@ class MultiGAT(nn.Module):
         self.residual = residual
         self.att_dropout = att_dropout
         self.input_dropout = input_dropout
+        self.save_alpha = save_alpha
 
         self.layers, self.dropout, self.conv = self._make_layer()
 
@@ -218,17 +222,22 @@ class MultiGAT(nn.Module):
             residual_ = self.residual and (input_dim_ == self.hidden_dim)
             layers.append(GATBlock(input_dim=input_dim_,
                                    output_dim=self.hidden_dim // self.heads[i],
-                                   heads=self.heads[i], concat=True,
+                                   heads=self.heads[i],
+                                   concat=True,
                                    residual=residual_,
                                    att_dropout=self.att_dropout,
-                                   input_dropout=self.input_dropout))
+                                   input_dropout=self.input_dropout,
+                                   save_alpha=self.save_alpha))
 
         dropout = nn.Dropout(self.input_dropout)
 
         input_dim_ = self.input_dim if self.num_layer == 1 else self.hidden_dim
         conv = GATConv(in_channels=input_dim_,
                        out_channels=self.output_dim,
-                       heads=self.heads[-1], concat=False, dropout=self.att_dropout)
+                       heads=self.heads[-1],
+                       concat=False,
+                       dropout=self.att_dropout,
+                       save_alpha=self.save_alpha)
         
         return nn.Sequential(*layers), dropout, conv
 
@@ -239,5 +248,4 @@ class MultiGAT(nn.Module):
         x = self.dropout(x)
         x = self.conv(x, edge_index)
 
-        # return F.log_softmax(x, dim=1)
         return x
