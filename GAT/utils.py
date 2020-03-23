@@ -2,6 +2,7 @@ import os
 import copy
 import numpy as np
 from tqdm import tqdm
+from functools import partial
 import matplotlib.pyplot as plt
 
 import torch
@@ -26,28 +27,60 @@ def count_params(model):
 
 def normalize_features(data):
     row_sum = data.x.sum(axis=-1, keepdim=True)
-    row_sum = torch.abs(row_sum)
     data.x = data.x / (row_sum + 1e-8) # there are some data having features with all zero in Citeseer
 
     return data
 
 
-def load_dataset(name):
-    name = name.title()
+class StandardScaler():
 
-    if name in ['Cora', 'Citeseer', 'Pubmed']:
-        return Planetoid(root=name, name=name, pre_transform=normalize_features)
-    elif name in ['PPI', 'Ppi']:
+    def __init__(self):
+        self.mean = None
+        self.std = None
+        self.fitted = False
+
+    def fit(self, x):
+        self.mean = x.mean(dim=0, keepdim=True) # (1, num_features)
+        self.std = x.std(dim=0, keepdim=True) # (1, num_features)
+
+        self.fitted = True
+
+    def transform(self, x):
+        if self.fitted:
+            return (x - self.mean) / self.std
+        else:
+            raise RuntimeError('Need to fit data first.')
+
+
+def preprocess(data, scaler=None):
+    if scaler:
+        if not scaler.fitted:
+            scaler.fit(data.x)
+
+        data.x = scaler.transform(data.x)
+
+    return normalize_features(data)
+
+
+def load_dataset(name):
+    name = name.lower()
+
+    if name in ['cora', 'citeseer', 'pubmed']:
+        return Planetoid(root=name, name=name, pre_transform=preprocess)
+    elif name == 'ppi':
+        scaler = StandardScaler()
+        preprocess = partial(preprocess, scaler=scaler)
+
         datasets = []
         for split in ['train', 'val', 'test']:
-            dataset = PPI(root='PPI', split=split, pre_transform=normalize_features)
+            dataset = PPI(root='PPI', split=split, pre_transform=preprocess)
             datasets.append(dataset)
         
         return datasets
         
 
-def accuracy(output, labels):
-    _, pred = output.max(dim=1)
+def accuracy(logits, labels):
+    _, pred = logits.max(dim=1)
     correct = pred.eq(labels).double()
     correct = correct.sum()
     
@@ -80,17 +113,17 @@ def train_on_epoch(model, optimizer, dataloader, criterion, metric_func, device)
 
     for data in dataloader:
         data = data.to(device)
-        output = model(data)
+        logits = model(data)
         y = data.y
 
         mask = getattr(data, 'train_mask', None)
         
         if mask is not None: # for citation
-            output = output[mask]
+            logits = logits[mask]
             y = y[mask]
     
-        train_loss = criterion(output, y)
-        train_metric = metric_func(output, y)
+        train_loss = criterion(logits, y)
+        train_metric = metric_func(logits, y)
 
         train_loss.backward()
         optimizer.step()
@@ -99,24 +132,24 @@ def train_on_epoch(model, optimizer, dataloader, criterion, metric_func, device)
 
 
 def evaluate(model, dataloader, criterion, metric_func, mode, device):
-    assert mode in ['val', 'test'], '`mode` can only be one of `val` or `test`'
+    assert mode in ['val', 'test'], '`mode` can only be `val` or `test`'
 
     model.eval()
     data = next(iter(dataloader)).to(device)
     y = data.y
 
-    mask_name = 'val_mask' if mode == 'val' else 'test_mode'
+    mask_name = 'val_mask' if mode == 'val' else 'test_mask'
     mask = getattr(data, mask_name, None)
 
     with torch.no_grad():
-        output = model(data)
+        logits = model(data)
 
         if mask is not None: # for citation
-            output = output[mask]
+            logits = logits[mask]
             y = y[mask]
 
-        loss = criterion(output, y)
-        metric = metric_func(output, y)
+        loss = criterion(logits, y)
+        metric = metric_func(logits, y)
 
     return loss, metric
 
@@ -210,7 +243,11 @@ def train_for_citation(model_class, hparams, dataset, epochs, lr, l2, trials, de
 
 
 def train_for_ppi(model_class, hparams, datasets, epochs, lr, l2, trials, device, model_path):
-    dataloaders = [DataLoader(dataset, batch_size=2) for dataset in datasets]
+    dataloaders = [
+        DataLoader(datasets[0], batch_size=2, shuffle=True),
+        DataLoader(datasets[1], batch_size=2, shuffle=False),
+        DataLoader(datasets[2], batch_size=2, shuffle=False),
+    ]
 
     histories = []
     f1_values = []
