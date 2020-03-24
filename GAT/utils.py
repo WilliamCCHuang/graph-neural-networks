@@ -32,30 +32,30 @@ def normalize_features(data):
     return data
 
 
-class StandardScaler():
+# class StandardScaler():
 
-    def __init__(self):
-        self.mean = None
-        self.std = None
-        self.fitted = False
+#     def __init__(self):
+#         self.mean = None
+#         self.std = None
+#         self.fitted = False
 
-    def fit(self, dataset):
-        total_x_list = [data.x for data in dataset]
-        total_x_tensor = torch.cat(total_x_list, dim=0) 
+#     def fit(self, dataset):
+#         total_x_list = [data.x for data in dataset]
+#         total_x_tensor = torch.cat(total_x_list, dim=0) 
         
-        self.mean = total_x_tensor.mean(dim=0, keepdim=True) # (1, num_features)
-        self.std = total_x_tensor.std(dim=0, keepdim=True) # (1, num_features)
+#         self.mean = total_x_tensor.mean(dim=0, keepdim=True) # (1, num_features)
+#         self.std = total_x_tensor.std(dim=0, keepdim=True) # (1, num_features)
 
-        self.fitted = True
+#         self.fitted = True
 
-    def transform(self, dataset):
-        if self.fitted:
-            for i in range(len(dataset)):
-                dataset[i].x = (dataset[i].x - self.mean) / self.std
+#     def transform(self, dataset):
+#         if self.fitted:
+#             for i in range(len(dataset)):
+#                 dataset[i].x = (dataset[i].x - self.mean) / self.std
 
-            return dataset
-        else:
-            raise RuntimeError('Need to fit data first.')
+#             return dataset
+#         else:
+#             raise RuntimeError('Need to fit data first.')
 
 
 def load_dataset(name):
@@ -64,13 +64,13 @@ def load_dataset(name):
     if name in ['cora', 'citeseer', 'pubmed']:
         return Planetoid(root=name, name=name, pre_transform=normalize_features)
     elif name == 'ppi':
-        scaler = StandardScaler()
+        # scaler = StandardScaler()
         datasets = []
         for split in ['train', 'val', 'test']:
             dataset = PPI(root='PPI', split=split)
 
-            if split == 'train':
-                scaler.fit(dataset)
+            # if split == 'train':
+            #     scaler.fit(dataset)
             
             dataset = scaler.transform(dataset)
 
