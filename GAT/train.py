@@ -37,6 +37,7 @@ def build_parser():
     ppi_parser = subcmd.add_parser('ppi', help='reproduce the result in PPI dataset.')
     ppi_parser.add_argument('--hidden_dim', type=int, default=1024, help='hidden dimension')
     ppi_parser.add_argument('--heads', nargs='+', default=[4, 4, 6], help='number of heads in each layer')
+    ppi_parser.add_argument('--residual', type=bool, default=True, help='residual connection')
     ppi_parser.add_argument('--att_dropout', type=float, default=0.0, help='dropout rate of attention')
     ppi_parser.add_argument('--input_dropout', type=float, default=0.0, help='dropout rate of input')
     ppi_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
@@ -113,13 +114,14 @@ def main():
             'input_dim': datasets[0].num_node_features,
             'hidden_dim': args.hidden_dim,
             'output_dim': datasets[0].num_classes,
-            'heads_1': 8,
-            'heads_2': 8,
+            'num_layer': len(args.heads)
+            'heads': args.heads,
+            'residual': args.residual,
             'att_dropout': args.att_dropout,
             'input_dropout': args.input_dropout,
         }
 
-        histories = train_for_ppi(model_class=GAT, hparams=hparams, datasets=datasets,
+        histories = train_for_ppi(model_class=MultiGAT, hparams=hparams, datasets=datasets,
                                   epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
                                   device=device, model_path=f'pretrained_models/gat_ppi.pth')
         visualize_training(histories, title=f'GAT / PPI', metric_name='f1-score', save_path=f'images/gat_ppi.png')
