@@ -109,17 +109,6 @@ def main():
 
         datasets = load_dataset('ppi')
 
-        # hparams = {
-        #     'input_dim': datasets[0].num_node_features,
-        #     'hidden_dim': args.hidden_dim,
-        #     'output_dim': datasets[0].num_classes,
-        #     'num_layer': len(args.heads),
-        #     'heads': args.heads,
-        #     'residual': True,
-        #     'att_dropout': args.att_dropout,
-        #     'input_dropout': args.input_dropout,
-        # }
-
         hparams = {
             'input_dim': datasets[0].num_node_features,
             'hidden_dim': args.hidden_dim,
