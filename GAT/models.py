@@ -42,7 +42,7 @@ class GCN(nn.Module):
 
 class GATConv(MessagePassing):
     """
-    Modify the origin implementation of GAT so that attention weights can be saved.
+    Modify the original implementation of GAT so that attention weights can be saved.
     
     source code: https://github.com/rusty1s/pytorch_geometric/blob/master/torch_geometric/nn/conv/gat_conv.py
     """
