@@ -122,7 +122,21 @@ def evaluate(model, dataloader, criterion, metric_func, mode, device):
     return loss, metric
 
 
-def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, device, model_path=None, verbose=True):
+def best_result(model, model_path, dataloader, criterion, metric_func, device):
+    model.load_state_dict(torch.load(model_path.format(mode='loss')))
+    loss_1, metric_1 = evaluate(model, dataloader, criterion, metric_func, mode='test', device=device)
+    loss_1, metric_1 = loss_1.item(), metric_1.item()
+    
+    model.load_state_dict(torch.load(model_path.format(mode='metric')))
+    loss_2, metric_2 = evaluate(model, dataloader, criterion, metric_func, mode='test', device=device)
+    loss_2, metric_2 = loss_2.item(), metric_2.item()
+        
+    loss, metric = loss_1, metric_1 if metric_1 > metric_2 else loss_2, metric_2
+
+    return loss, metric
+
+
+def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, device, model_path, verbose=True):
     if model_path is None:
         print('Warning: you must assign `model_path` to save model.\n')
     
@@ -132,8 +146,8 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
     train_loss_values, train_metric_values = [], []
     val_loss_values, val_metric_values = [], []
 
-    best = np.inf
-    bad_counter = 0
+    best_loss = np.inf
+    best_metric = 0.0
     for epoch in tqdm(range(epochs), desc='Training', leave=verbose):
         if epoch == 0:
             print('       |    Trainging     |    Validation    |')
@@ -152,18 +166,18 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
         log = '  {:3d}  | {:.4f}    {:.4f} | {:.4f}    {:.4f} |'
         log = log.format(epoch+1, train_loss.item(), train_metric.item(), val_loss.item(), val_metric.item())
 
-        if val_loss_values[-1] < best:
-            bad_counter = 0
+        if val_loss_values[-1] < best_loss or val_metric_values[-1] > best_metric:
+            create_dirs(model_path)
+
+            if val_loss_values[-1] < best_loss:
+                path = model_path.format(mode='loss')
+                best_loss = val_loss_values[-1]
+            if val_metric_values[-1] > best_metric:
+                path = model_path.format(mode='metric')
+                best_metric = val_metric_values[-1]
             
-            if model_path:
-                create_dirs(model_path)
-                torch.save(model.state_dict(), model_path)
-                log += ' save model to {}'.format(model_path)
-
-            best = val_loss_values[-1]
-        else:
-            bad_counter += 1
-
+            torch.save(model.state_dict(), path)
+            log += ' save model to {}'.format(path)
         if verbose:
             tqdm.write(log)
 
@@ -198,11 +212,10 @@ def train_for_citation(model_class, hparams, dataset, epochs, lr, l2, trials, de
         history = train(model, dataloaders, criterion, metric_func, epochs, lr, l2, device, model_path)
         histories.append(history)
 
-        model.load_state_dict(torch.load(model_path))
-        loss, acc = evaluate(model, dataloaders[-1], criterion, metric_func, mode='test', device=device)
-        acc_values.append(acc.item())
+        best_loss, best_acc = best_result(model, model_path, dataloaders[-1], criterion, metric_func, device)
+        acc_values.append(acbest_accc.item())
 
-        print('\ntest_loss = {:.4f}, test_acc = {:.4f}\n'.format(loss.item(), acc.item()))
+        print('\ntest_loss = {:.4f}, test_acc = {:.4f}\n'.format(best_loss, best_acc))
     
     mean, std = compute_mean_error(acc_values)
     print('=== Final result ===\n')
@@ -230,11 +243,10 @@ def train_for_ppi(model_class, hparams, datasets, epochs, lr, l2, trials, device
         history = train(model, dataloaders, criterion, metric_func, epochs, lr, l2, device, model_path)
         histories.append(history)
 
-        model.load_state_dict(torch.load(model_path))
-        loss, f1 = evaluate(model, dataloaders[-1], criterion, metric_func, mode='test', device=device)
-        f1_values.append(f1.item())
+        best_loss, best_f1 = best_result(model, model_path, dataloaders[-1], criterion, metric_func, device)
+        f1_values.append(best_f1)
 
-        print('\ntest_loss = {:.4f}, test_f1 = {:.4f}\n'.format(loss.item(), f1.item()))
+        print('\ntest_loss = {:.4f}, test_f1 = {:.4f}\n'.format(best_loss, best_f1))
     
     mean, std = compute_mean_error(f1_values)
     print('=== Final result ===\n')
