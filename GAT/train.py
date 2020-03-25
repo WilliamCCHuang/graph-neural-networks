@@ -42,7 +42,7 @@ def build_parser():
     ppi_parser.add_argument('--input_dropout', type=float, default=0.0, help='dropout rate of input')
     ppi_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
     ppi_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
-    ppi_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
+    ppi_parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
     ppi_parser.add_argument('--l2', type=float, default=0.0, help='weight decay')
     ppi_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
@@ -97,7 +97,7 @@ def main():
 
         histories = train_for_citation(model_class=GAT, hparams=hparams, dataset=dataset,
                                        epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
-                                       device=device, model_path=f'pretrained_models/gat_{args.dataset.lower()}.pth')
+                                       device=device, model_path=f'pretrained_models/gat_{args.dataset.lower()}_{mode}.pth')
         visualize_training(histories, title=f'GAT / {args.dataset.title()}',
                            metric_name='accuracy', save_path=f'images/gat_{args.dataset.lower()}.png')
 
@@ -114,7 +114,7 @@ def main():
             'input_dim': datasets[0].num_node_features,
             'hidden_dim': args.hidden_dim,
             'output_dim': datasets[0].num_classes,
-            'num_layer': len(args.heads)
+            'num_layer': len(args.heads),
             'heads': args.heads,
             'residual': args.residual,
             'att_dropout': args.att_dropout,
@@ -123,7 +123,7 @@ def main():
 
         histories = train_for_ppi(model_class=MultiGAT, hparams=hparams, datasets=datasets,
                                   epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
-                                  device=device, model_path=f'pretrained_models/gat_ppi.pth')
+                                  device=device, model_path=f'pretrained_models/gat_ppi_{mode}.pth')
         visualize_training(histories, title=f'GAT / PPI', metric_name='f1-score', save_path=f'images/gat_ppi.png')
 
     elif args.subcmd == 'parameters':
