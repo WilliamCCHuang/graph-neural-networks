@@ -123,15 +123,16 @@ def evaluate(model, dataloader, criterion, metric_func, mode, device):
 
 
 def best_result(model, model_path, dataloader, criterion, metric_func, device):
-    model.load_state_dict(torch.load(model_path.format(mode='loss')))
-    loss_1, metric_1 = evaluate(model, dataloader, criterion, metric_func, mode='test', device=device)
-    loss_1, metric_1 = loss_1.item(), metric_1.item()
+    if os.path.exists(model_path.format('loss')):
+        model.load_state_dict(torch.load(model_path.format('loss')))
+        loss_, metric_ = evaluate(model, dataloader, criterion, metric_func, mode='test', device=device)
+        loss_, metric_ = loss_.item(), metric_.item()
     
-    model.load_state_dict(torch.load(model_path.format(mode='metric')))
-    loss_2, metric_2 = evaluate(model, dataloader, criterion, metric_func, mode='test', device=device)
-    loss_2, metric_2 = loss_2.item(), metric_2.item()
-        
-    loss, metric = loss_1, metric_1 if metric_1 > metric_2 else loss_2, metric_2
+    model.load_state_dict(torch.load(model_path.format('metric')))
+    loss, metric = evaluate(model, dataloader, criterion, metric_func, mode='test', device=device)
+    loss, metric = loss.item(), metric.item()
+
+    loss, metric = (loss, metric) if metric > metric_ else (loss_, metric_)
 
     return loss, metric
 
@@ -170,10 +171,10 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
             create_dirs(model_path)
 
             if val_loss_values[-1] < best_loss:
-                path = model_path.format(mode='loss')
+                path = model_path.format('loss')
                 best_loss = val_loss_values[-1]
             if val_metric_values[-1] > best_metric:
-                path = model_path.format(mode='metric')
+                path = model_path.format('metric')
                 best_metric = val_metric_values[-1]
             
             torch.save(model.state_dict(), path)
