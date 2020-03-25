@@ -10,7 +10,7 @@ from utils import (
     train_for_ppi,
     train_for_parameters,
     train_for_layers,
-    visualize_training,
+    plot_training,
     plot_acc_vs_parameters,
     plot_acc_vs_layers
 )
@@ -95,11 +95,12 @@ def main():
             'input_dropout': args.input_dropout,
         }
 
+        model_path = f'pretrained_models/gat_{args.dataset.lower()}'
         histories = train_for_citation(model_class=GAT, hparams=hparams, dataset=dataset,
                                        epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
-                                       device=device, model_path=f'pretrained_models/gat_{args.dataset.lower()}_{mode}.pth')
-        visualize_training(histories, title=f'GAT / {args.dataset.title()}',
-                           metric_name='accuracy', save_path=f'images/gat_{args.dataset.lower()}.png')
+                                       device=device, model_path=model_path + '_{}.pth')
+        plot_training(histories, title=f'GAT / {args.dataset.title()}',
+                      metric_name='accuracy', save_path=f'images/gat_{args.dataset.lower()}.png')
 
     elif args.subcmd == 'ppi':
         for i, head in enumerate(args.heads):
@@ -123,8 +124,8 @@ def main():
 
         histories = train_for_ppi(model_class=MultiGAT, hparams=hparams, datasets=datasets,
                                   epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
-                                  device=device, model_path=f'pretrained_models/gat_ppi_{mode}.pth')
-        visualize_training(histories, title=f'GAT / PPI', metric_name='f1-score', save_path=f'images/gat_ppi.png')
+                                  device=device, model_path='pretrained_models/gat_ppi_{}.pth')
+        plot_training(histories, title=f'GAT / PPI', metric_name='f1-score', save_path='images/gat_ppi.png')
 
     elif args.subcmd == 'parameters':
         hidden_dim_list = [int(dim) for dim in args.num_hidden_dim]
