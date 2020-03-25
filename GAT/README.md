@@ -1,6 +1,6 @@
 # Graph Attention Networks
 
-![](./images/layer.jpg)
+![](./images/layer.png)
 
 ## How does GAT work?
 
