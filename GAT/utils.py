@@ -96,7 +96,7 @@ def train_on_epoch(model, optimizer, dataloader, criterion, metric_func, device)
         train_loss.backward()
         optimizer.step()
 
-    return train_loss, train_metric
+    return train_loss.item(), train_metric.item()
 
 
 def evaluate(model, dataloader, criterion, metric_func, mode, device):
@@ -119,18 +119,16 @@ def evaluate(model, dataloader, criterion, metric_func, mode, device):
         loss = criterion(logits, y)
         metric = metric_func(logits, y)
 
-    return loss, metric
+    return loss.item(), metric.item()
 
 
 def best_result(model, model_path, dataloader, criterion, metric_func, device):
     if os.path.exists(model_path.format('loss')):
         model.load_state_dict(torch.load(model_path.format('loss')))
         loss_, metric_ = evaluate(model, dataloader, criterion, metric_func, mode='test', device=device)
-        loss_, metric_ = loss_.item(), metric_.item()
     
     model.load_state_dict(torch.load(model_path.format('metric')))
     loss, metric = evaluate(model, dataloader, criterion, metric_func, mode='test', device=device)
-    loss, metric = loss.item(), metric.item()
 
     loss, metric = (loss, metric) if metric > metric_ else (loss_, metric_)
 
@@ -157,15 +155,15 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
             print('-------|------------------|------------------|')
 
         train_loss, train_metric = train_on_epoch(model, optimizer, train_dataloader, criterion, metric_func, device)
-        train_loss_values.append(train_loss.item())
-        train_metric_values.append(train_metric.item())
+        train_loss_values.append(train_loss)
+        train_metric_values.append(train_metric)
 
         val_loss, val_metric = evaluate(model, val_dataloader, criterion, metric_func, mode='val', device=device)
-        val_loss_values.append(val_loss.item())
-        val_metric_values.append(val_metric.item())
+        val_loss_values.append(val_loss)
+        val_metric_values.append(val_metric)
 
         log = '  {:3d}  | {:.4f}    {:.4f} | {:.4f}    {:.4f} |'
-        log = log.format(epoch+1, train_loss.item(), train_metric.item(), val_loss.item(), val_metric.item())
+        log = log.format(epoch+1, train_loss, train_metric, val_loss, val_metric)
 
         if val_loss_values[-1] < best_loss or val_metric_values[-1] > best_metric:
             create_dirs(model_path)
@@ -271,10 +269,10 @@ def train_for_parameters(model_class, hparams, data, epochs, lr, hidden_dim_list
             _ = train(model, data, epochs=epochs, lr=lr, model_path=model_path, verbose=False)
 
             model.load_state_dict(torch.load(model_path))
-            loss, acc = citation_evaluate(model, data, data.test_mask)
-            acc_values.append(acc.item())
+            loss, acc = evaluate(model, data, data.test_mask)
+            acc_values.append(acc)
 
-            tqdm.write('{:2d}-th run: test_loss = {:.4f} test_acc = {:.4f}\n'.format(trial+1, loss.item(), acc.item()))
+            tqdm.write('{:2d}-th run: test_loss = {:.4f} test_acc = {:.4f}\n'.format(trial+1, loss, acc))
 
         acc_list.append(acc_values)
         params_list.append(count_params(model))
@@ -303,17 +301,17 @@ def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, tri
             _ = train(model, data, epochs=epochs, lr=lr, weight_decay=l2, model_path=model_path, verbose=False)
 
             model.load_state_dict(torch.load(model_path))
-            _, train_acc = citation_evaluate(model, data, data.train_mask)
-            train_acc_values.append(train_acc.item())
-            _, val_acc = citation_evaluate(model, data, data.val_mask)
-            val_acc_values.append(val_acc.item())
-            _, test_acc = citation_evaluate(model, data, data.test_mask)
-            test_acc_values.append(test_acc.item())
+            _, train_acc = evaluate(model, data, data.train_mask)
+            train_acc_values.append(train_acc)
+            _, val_acc = evaluate(model, data, data.val_mask)
+            val_acc_values.append(val_acc)
+            _, test_acc = evaluate(model, data, data.test_mask)
+            test_acc_values.append(test_acc)
 
-            tqdm.write('| {}-th run | train_acc = {:.4f} | val_acc = {:.4f} | test_acc = {:.4f} |'.format(trial+1,
-                                                                                                          train_acc.item(),
-                                                                                                          val_acc.item(),
-                                                                                                          test_acc.item()))
+            log = '| {}-th run | train_acc = {:.4f} | val_acc = {:.4f} | test_acc = {:.4f} |'
+            log = log.format(trial+1, train_acc, val_acc, test_acc)
+            tqdm.write(log)
+            
         print('-'*72)
         train_acc_list.append(train_acc_values)
         val_acc_list.append(val_acc_values)
@@ -322,7 +320,7 @@ def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, tri
     return train_acc_list, val_acc_list, test_acc_list
 
 
-def visualize_training(histories, title, metric_name, save_path=None):
+def plot_training(histories, title, metric_name, save_path=None):
     plt.figure(figsize=(13, 4))
     for i, metric in enumerate(['loss', metric_name]):
         plt.subplot(1, 2, i+1)
