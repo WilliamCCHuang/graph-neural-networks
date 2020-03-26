@@ -40,7 +40,7 @@ def load_dataset(name):
     elif name == 'ppi':
         datasets = []
         for split in ['train', 'val', 'test']:
-            dataset = PPI(root='PPI', split=split)
+            dataset = PPI(root='PPI', split=split, pre_transform=normalize_features)
 
             datasets.append(dataset)
             
@@ -311,7 +311,7 @@ def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, tri
             log = '| {}-th run | train_acc = {:.4f} | val_acc = {:.4f} | test_acc = {:.4f} |'
             log = log.format(trial+1, train_acc, val_acc, test_acc)
             tqdm.write(log)
-            
+
         print('-'*72)
         train_acc_list.append(train_acc_values)
         val_acc_list.append(val_acc_values)
