@@ -143,6 +143,7 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     if lr_scheduler:
+        print('use lr scheduler...')
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', factor=0.1, patience=50, verbose=True)
 
     train_loss_values, train_metric_values = [], []
@@ -245,7 +246,7 @@ def train_for_ppi(model_class, hparams, datasets, epochs, lr, l2, trials, device
         criterion = nn.BCEWithLogitsLoss()
         metric_func = f1_score
 
-        history = train(model, dataloaders, criterion, metric_func, epochs, lr, l2, device, model_path)
+        history = train(model, dataloaders, criterion, metric_func, epochs, lr, l2, device, model_path, lr_scheduler=True)
         histories.append(history)
 
         best_loss, best_f1 = best_result(model, model_path, dataloaders[-1], criterion, metric_func, device)
