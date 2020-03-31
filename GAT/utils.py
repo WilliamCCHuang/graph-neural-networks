@@ -135,12 +135,15 @@ def best_result(model, model_path, dataloader, criterion, metric_func, device):
     return loss, metric
 
 
-def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, device, model_path, verbose=True):
+def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, device, model_path, lr_scheduler=False, verbose=True):
     if model_path is None:
         print('Warning: you must assign `model_path` to save model.\n')
     
     train_dataloader, val_dataloader, _ = dataloaders
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+    if lr_scheduler:
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', factor=0.1, patience=50, verbose=True)
 
     train_loss_values, train_metric_values = [], []
     val_loss_values, val_metric_values = [], []
@@ -161,6 +164,9 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
         val_loss, val_metric = evaluate(model, val_dataloader, criterion, metric_func, mode='val', device=device)
         val_loss_values.append(val_loss)
         val_metric_values.append(val_metric)
+
+        if lr_scheduler:
+            scheduler.step(val_metric)
 
         log = '  {:3d}  | {:.4f}    {:.4f} | {:.4f}    {:.4f} |'
         log = log.format(epoch+1, train_loss, train_metric, val_loss, val_metric)
