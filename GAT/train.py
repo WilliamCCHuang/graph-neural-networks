@@ -44,6 +44,7 @@ def build_parser():
     ppi_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
     ppi_parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
     ppi_parser.add_argument('--l2', type=float, default=0.0, help='weight decay')
+    ppi_parser.add_argument('--lr_scheduler', type=bool, default=False, help='learning rate scheduler')
     ppi_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
     parameter_parser = subcmd.add_parser('parameters', help='compare GAT with GCN in different number of parameters.')
