@@ -4,6 +4,7 @@ import torch
 
 from models import GCN, GAT, MultiGAT
 from utils import (
+    str2bool
     load_dataset,
     normalize_features,
     train_for_citation,
@@ -37,20 +38,20 @@ def build_parser():
     ppi_parser = subcmd.add_parser('ppi', help='reproduce the result in PPI dataset.')
     ppi_parser.add_argument('--hidden_dim', type=int, default=1024, help='hidden dimension')
     ppi_parser.add_argument('--heads', nargs='+', default=[4, 4, 6], help='number of heads in each layer')
-    ppi_parser.add_argument('--residual', type=bool, default=True, help='residual connection')
+    ppi_parser.add_argument('--residual', type=str2bool, default=True, help='residual connection')
     ppi_parser.add_argument('--att_dropout', type=float, default=0.0, help='dropout rate of attention')
     ppi_parser.add_argument('--input_dropout', type=float, default=0.0, help='dropout rate of input')
     ppi_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
     ppi_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
     ppi_parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
     ppi_parser.add_argument('--l2', type=float, default=0.0, help='weight decay')
-    ppi_parser.add_argument('--lr_scheduler', type=bool, default=False, help='learning rate scheduler')
+    ppi_parser.add_argument('--lr_scheduler', type=str2bool, default=False, help='learning rate scheduler')
     ppi_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
     parameter_parser = subcmd.add_parser('parameters', help='compare GAT with GCN in different number of parameters.')
     parameter_parser.add_argument('--dataset', type=str, default='cora', help='dataset')
     parameter_parser.add_argument('--trials', type=int, default=10, help='number of experiments')
-    parameter_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
+    parameter_parser.add_argument('--gpu', type=str2bool, default=True, help='whether use GPU or not')
     parameter_parser.add_argument('--num_hidden_dim', nargs='+', default=[8, 16, 32, 64, 128])
 
     layers_parser = subcmd.add_parser('layers', help='train on different layers')
@@ -64,7 +65,7 @@ def build_parser():
     layers_parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
     layers_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
     layers_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
-    layers_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
+    layers_parser.add_argument('--gpu', type=str2bool, default=True, help='whether use GPU or not')
     layers_parser.add_argument('--num_layers', nargs='+', default=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
     return parser
@@ -125,7 +126,8 @@ def main():
 
         histories = train_for_ppi(model_class=MultiGAT, hparams=hparams, datasets=datasets,
                                   epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
-                                  device=device, model_path='pretrained_models/gat_ppi_{}.pth')
+                                  device=device, model_path='pretrained_models/gat_ppi_{}.pth',
+                                  lr_scheduler=args.lr_scheduler)
         plot_training(histories, title=f'GAT / PPI', metric_name='f1-score', save_path='images/gat_ppi.png')
 
     elif args.subcmd == 'parameters':
