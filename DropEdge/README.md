@@ -1,12 +1,16 @@
 # DropEdge
 
+
+
+## Results
+
 <table cellpadding=0 cellspacing=0 border=0 align=center>
   <tr>
     <td rowspan="2">Dataset</td>
     <td rowspan="2">Backbone</td>
-    <td>2 layers</td>
-    <td>8 layers</td>
-    <td>32 layers</td>
+    <td colspan=2>2 layers</td>
+    <td colspan=2>8 layers</td>
+    <td colspan=2>32 layers</td>
   </tr>
   <tr>
     <td>Original</td>
@@ -18,7 +22,6 @@
   </tr>
 </table>
 
-## Results
 
 | Dataset | Backbone | 2 layers (original) | 2 layers (DropEdge) | 8 layers (original) | 8 layers (DropEdge) | 32 layers (original) | 32 layers (DropEdge) |
 | :-----: | :------: | :-----------------: | :-----------------: | :-----------------: | :-----------------: | :------------------: | :------------------: |
