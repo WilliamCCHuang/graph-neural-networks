@@ -66,9 +66,9 @@ class MultiGCN(nn.Module):
     
     def _make_layer(self):
         layers = []
-        for i in range(self.num_layer-1):
+        for i in range(self.num_layer - 1):
             input_dim_ = self.input_dim if i == 0 else self.hidden_dim
-            dropout_ = self.dropout if (i == 0) or (i == self.num_layer-2) else None
+            dropout_ = self.dropout if (i == 0) or (i == self.num_layer - 2) else None
             residual_ = self.residual and (input_dim_ == self.hidden_dim)
             layers.append(GCNBlock(input_dim_, self.hidden_dim, residual_, dropout_))
 

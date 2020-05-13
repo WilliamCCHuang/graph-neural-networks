@@ -45,7 +45,7 @@ def normalize_features(data):
     data = copy.deepcopy(data)
 
     row_sum = data.x.sum(axis=-1, keepdim=True)
-    data.x = data.x / (row_sum + 1e-8) # there are some data having features with all zero in Citeseer
+    data.x = data.x / (row_sum + 1e-8)  # there are some data having features with all zero in Citeseer
 
     return data
 
@@ -122,7 +122,7 @@ def train(model, data, epochs, lr, weight_decay=5e-4, model_path=None, verbose=T
 
         if val_loss_values[-1] < best:
             bad_counter = 0
-            log = '  {:3d}  | {:.4f}    {:.4f}  | {:.4f}    {:.4f}   |'.format(epoch+1,
+            log = '  {:3d}  | {:.4f}    {:.4f}  | {:.4f}    {:.4f}   |'.format(epoch + 1,
                                                                                train_loss.item(),
                                                                                train_acc.item(),
                                                                                val_loss.item(),
@@ -188,14 +188,14 @@ def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, tri
         tqdm.write(f'\n=== Number of layer: {num_layer} ===')
         tqdm.write('\nModel Structure')
         tqdm.write(model.__str__())
-        tqdm.write('\n' + '-'*72)
+        tqdm.write('\n' + '-' * 72)
 
         train_acc_values = []
         val_acc_values = []
         test_acc_values = []
         for trial in tqdm(range(trials), desc='Trials', leave=False):
             model = model_class(**hparams).to(device)
-            _ = train(model, data, epochs=epochs, lr=lr, weight_decay=l2, , model_path=model_path, verbose=False)
+            _ = train(model, data, epochs=epochs, lr=lr, weight_decay=l2, model_path=model_path, verbose=False)
 
             model.load_state_dict(torch.load(model_path))
             _, train_acc = evaluate(model, data, data.train_mask)
@@ -206,9 +206,9 @@ def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, tri
             test_acc_values.append(test_acc.item())
 
             log = '| {}-th run | train_acc = {:.4f} | val_acc = {:.4f} | test_acc = {:.4f} |'
-            tqdm.write(log.format(trial+1, train_acc.item(), val_acc.item(), test_acc.item()))
+            tqdm.write(log.format(trial + 1, train_acc.item(), val_acc.item(), test_acc.item()))
 
-        print('-'*72)
+        print('-' * 72)
         train_acc_list.append(train_acc_values)
         val_acc_list.append(val_acc_values)
         test_acc_list.append(test_acc_values)
@@ -219,7 +219,7 @@ def train_for_layers(model_class, hparams, data, epochs, lr, l2, num_layers, tri
 def visualize_training(histories, title, save_path=None):
     plt.figure(figsize=(13, 4))
     for i, metric in enumerate(['loss', 'acc']):
-        plt.subplot(1, 2, i+1)
+        plt.subplot(1, 2, i + 1)
 
         train_key = 'train_loss' if metric == 'loss' else 'train_acc'
         val_key = 'val_loss' if metric == 'loss' else 'val_acc'
@@ -234,9 +234,9 @@ def visualize_training(histories, title, save_path=None):
             value_std = np.std(values, axis=0)
 
             plt.plot(value_mean, c=c, label=label)
-            plt.fill_between(x=np.arange(1, len(value_mean)+1),
-                             y1=value_mean-value_std,
-                             y2=value_mean+value_std,
+            plt.fill_between(x=np.arange(1, len(value_mean) + 1),
+                             y1=value_mean - value_std,
+                             y2=value_mean + value_std,
                              color=c, alpha=0.2)
         plt.legend()
         plt.xlabel('epoch')
@@ -261,7 +261,7 @@ def plot_acc_vs_layers(no_residual_train_acc_list, no_residual_test_acc_list,
     _, ax = plt.subplots(1, 1, figsize=(6, 8))
     ax.set_facecolor(('w'))
     ax.spines['bottom'].set_color('k')
-    ax.spines['top'].set_color('k') 
+    ax.spines['top'].set_color('k')
     ax.spines['right'].set_color('k')
     ax.spines['left'].set_color('k')
 
@@ -280,16 +280,16 @@ def plot_acc_vs_layers(no_residual_train_acc_list, no_residual_test_acc_list,
         test_color = 'b' if i == 0 else 'purple'
         linestyle = '--' if i == 0 else '-'
 
-        ax.plot(num_layers, train_mean, c=train_color, marker='o', linestyle=linestyle, label='Train'+suffix)
-        ax.plot(num_layers, test_mean, c=test_color, marker='o', linestyle=linestyle, label='Test'+suffix)
+        ax.plot(num_layers, train_mean, c=train_color, marker='o', linestyle=linestyle, label='Train' + suffix)
+        ax.plot(num_layers, test_mean, c=test_color, marker='o', linestyle=linestyle, label='Test' + suffix)
         plt.fill_between(x=num_layers,
-                        y1=train_mean-train_std,
-                        y2=train_mean+train_std,
-                        color=train_color, alpha=0.1)
+                         y1=train_mean - train_std,
+                         y2=train_mean + train_std,
+                         color=train_color, alpha=0.1)
         plt.fill_between(x=num_layers,
-                        y1=test_mean-test_std,
-                        y2=test_mean+test_std,
-                        color=test_color, alpha=0.1)
+                         y1=test_mean - test_std,
+                         y2=test_mean + test_std,
+                         color=test_color, alpha=0.1)
 
     plt.title(title)
     plt.xlabel('Number of layers')
