@@ -20,13 +20,13 @@ def build_parser():
     citation_parser = subcmd.add_parser('citation', help='reproduce the accuracy reported in paper.')
     citation_parser.add_argument('--model', type=str, default='GCN', help='model name')
     citation_parser.add_argument('--dataset', type=str, default='cora', help='dataset')
-    citation_parser.add_argument('--hidden_dim', type=int, default=64, help='hidden dimension')
+    citation_parser.add_argument('--hidden_dim', type=int, default=128, help='hidden dimension')
     citation_parser.add_argument('--n_layers', type=int, default=2, help='number of layers')
     citation_parser.add_argument('--dropout', type=float, default=0.5, help='dropout rate')
     citation_parser.add_argument('--edge_dropout', type=float, default=0.5, help='edge dropout rate')
     citation_parser.add_argument('--layer_wise_dropedge', type=str2bool, default=False, help='whether or not to use layer-wise DropEdge')
     citation_parser.add_argument('--trials', type=int, default=5, help='number of experiments')
-    citation_parser.add_argument('--epochs', type=int, default=200, help='number of epochs')
+    citation_parser.add_argument('--epochs', type=int, default=400, help='number of epochs')
     citation_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
     citation_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
     citation_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
@@ -69,11 +69,7 @@ def main():
             'layer_wise_dropedge': args.layer_wise_dropedge
         }
 
-        if args.edge_dropout:
-            model_name = f'{args.model}-{args.n_layers}+DropEdge'
-        else:
-            model_name = f'{args.model}-{args.n_layers}'
-
+        model_name = f'{args.model}-{args.n_layers}-hidden_dim={args.hidden_dim}-dropout={args.dropout}-edge_dropout={args.edge_dropout}-LW={args.layer_wise_dropedge}'
         model_path = f'pretrained_models/{model_name}_{args.dataset.lower()}' + '_{}.pth'
 
         histories = train_for_citation(model_name=args.model, hparams=hparams, dataset=dataset,

@@ -34,7 +34,7 @@ def check_args(args):
     
     
 def check_args_to_run(args):
-    print('\nThe arguments:')
+    print('\nArguments:')
     for arg in vars(args):
         print(f'* {arg} = {getattr(args, arg)}')
 

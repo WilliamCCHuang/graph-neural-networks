@@ -168,13 +168,13 @@ class MultiGCN(nn.Module):
                                             training=self.training)
         
         for layer in self.conv_layers:
+            x = layer(x, dropedge_index)
+
             if self.layer_wise_dropedge and self.edge_dropout:
                 dropedge_index, _ = dropout_adj(edge_index,
                                                 p=self.edge_dropout,
                                                 force_undirected=True,
                                                 training=self.training)
-
-            x = layer(x, dropedge_index)
 
         return x
 
