@@ -4,7 +4,7 @@
 
 ## Results
 
-<table style="text-align:center;" cellpadding=0 cellspacing=0 border=0>
+<table style="text-align:center;">
   <tr>
     <td rowspan=2>Dataset</td>
     <td rowspan=2>Backbone</td>
