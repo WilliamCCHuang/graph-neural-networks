@@ -20,9 +20,10 @@
     <td>Original</td>
     <td>DropEdge</td>
   </tr>
+  <tr>
+    <td rowspan=4 align=center>Cora</td>
+    <td>GCN</td>
+    <td>86.9 +- 0.3%</td>
+    <td>87.1 +- 0.2%</td>
+  </tr>
 </table>
-
-
-| Dataset | Backbone | 2 layers (original) | 2 layers (DropEdge) | 8 layers (original) | 8 layers (DropEdge) | 32 layers (original) | 32 layers (DropEdge) |
-| :-----: | :------: | :-----------------: | :-----------------: | :-----------------: | :-----------------: | :------------------: | :------------------: |
-|   Cora  |    GCN   |     86.9 +- 0.3%    |     87.1 +- 0.2%    |  |  |  |  |
