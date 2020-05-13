@@ -4,10 +4,10 @@
 
 ## Results
 
-<table cellpadding=0 cellspacing=0 border=0 align=center>
+<table class="centerTable" cellpadding=0 cellspacing=0 border=0 align=center>
   <tr>
-    <td rowspan=2 align=center>Dataset</td>
-    <td rowspan=2 align=center>Backbone</td>
+    <td rowspan=2>Dataset</td>
+    <td rowspan=2>Backbone</td>
     <td colspan=2 align=center>2 layers</td>
     <td colspan=2 align=center>8 layers</td>
     <td colspan=2 align=center>32 layers</td>
