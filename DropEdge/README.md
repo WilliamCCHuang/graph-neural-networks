@@ -8,9 +8,9 @@
   <tr>
     <td rowspan=2>Dataset</td>
     <td rowspan=2>Backbone</td>
-    <td colspan=2 align=center>2 layers</td>
-    <td colspan=2 align=center>8 layers</td>
-    <td colspan=2 align=center>32 layers</td>
+    <td colspan=2>2 layers</td>
+    <td colspan=2>8 layers</td>
+    <td colspan=2>32 layers</td>
   </tr>
   <tr>
     <td align=center>Original</td>
