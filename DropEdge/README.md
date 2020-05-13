@@ -22,7 +22,7 @@
   </tr>
   <tr>
     <td rowspan=4 align=center>Cora</td>
-    <td>GCN</td>
+    <td align=center>GCN</td>
     <td>86.9 +- 0.3%</td>
     <td>87.1 +- 0.2%</td>
   </tr>
