@@ -1,12 +1,18 @@
 # DropEdge
 
-<table cellpadding=0 cellspacing=0 border=0 width=282 align=center>
+<table cellpadding=0 cellspacing=0 border=0 align=center>
   <tr>
     <td rowspan="2">Dataset</td>
     <td rowspan="2">Backbone</td>
     <td>2 layers</td>
+    <td>8 layers</td>
+    <td>32 layers</td>
   </tr>
   <tr>
+    <td>Original</td>
+    <td>DropEdge</td>
+    <td>Original</td>
+    <td>DropEdge</td>
     <td>Original</td>
     <td>DropEdge</td>
   </tr>
