@@ -1,15 +1,15 @@
 # DropEdge
 
-<table border="1">
-    <tr>
-        <td rowspan="2">Dataset</td>
-        <td rowspan="2">Backbone</td>
-        <td>2 layers</td>
-    </tr>
-    <tr>
-        <td>Original</td>
-        <td>DropEdge</td>
-    </tr>
+<table cellpadding=0 cellspacing=0 border=0 width=282 align=center>
+  <tr>
+    <td rowspan="2">Dataset</td>
+    <td rowspan="2">Backbone</td>
+    <td>2 layers</td>
+  </tr>
+  <tr>
+    <td>Original</td>
+    <td>DropEdge</td>
+  </tr>
 </table>
 
 ## Results
