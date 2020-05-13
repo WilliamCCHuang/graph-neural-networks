@@ -13,12 +13,12 @@
     <td colspan=2 align=center>32 layers</td>
   </tr>
   <tr>
-    <td>Original</td>
-    <td>DropEdge</td>
-    <td>Original</td>
-    <td>DropEdge</td>
-    <td>Original</td>
-    <td>DropEdge</td>
+    <td align=center>Original</td>
+    <td align=center>DropEdge</td>
+    <td align=center>Original</td>
+    <td align=center>DropEdge</td>
+    <td align=center>Original</td>
+    <td align=center>DropEdge</td>
   </tr>
   <tr>
     <td rowspan=4 align=center>Cora</td>
