@@ -28,6 +28,8 @@ def build_parser():
     citation_parser.add_argument('--trials', type=int, default=5, help='number of experiments')
     citation_parser.add_argument('--epochs', type=int, default=400, help='number of epochs')
     citation_parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
+    citation_parser.add_argument('--reduce_factor', type=float, default=None, help='reduce factor for learning rate. Default is not to use lr scheduler')
+    citation_parser.add_argument('--patience', type=int, default=100, help='patience for lr scheduler')
     citation_parser.add_argument('--l2', type=float, default=5e-4, help='weight decay')
     citation_parser.add_argument('--gpu', type=bool, default=True, help='whether use GPU or not')
 
@@ -72,8 +74,7 @@ def main():
         model_name = f'{args.model}-{args.n_layers}-hidden_dim={args.hidden_dim}-dropout={args.dropout}-edge_dropout={args.edge_dropout}-LW={args.layer_wise_dropedge}'
         model_path = f'pretrained_models/{model_name}_{args.dataset.lower()}' + '_{}.pth'
 
-        histories = train_for_citation(model_name=args.model, hparams=hparams, dataset=dataset,
-                                       epochs=args.epochs, lr=args.lr, l2=args.l2, trials=args.trials,
+        histories = train_for_citation(args=args, hparams=hparams, dataset=dataset,
                                        device=device, model_path=model_path)
         
         plot_training(histories, title=f'{model_name} / {args.dataset.title()}',

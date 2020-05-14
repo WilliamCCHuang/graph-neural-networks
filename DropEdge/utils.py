@@ -166,16 +166,17 @@ def best_result(model, model_path, dataloader, criterion, metric_func, device):
     return loss, metric
 
 
-def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, device, model_path, lr_scheduler=False, verbose=True):
+def train(model, dataloaders, criterion, metric_func,
+          epochs, lr, weight_decay, device, model_path,
+          reduce_factor=None, partience=None, verbose=True):
     if model_path is None:
         print('Warning: you must assign `model_path` to save model.\n')
     
     train_dataloader, val_dataloader, _ = dataloaders
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-    if lr_scheduler:
-        print('use lr scheduler...')
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', factor=0.1, patience=100, verbose=True)
+    if reduce_factor:
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', reduce_factor, partience, verbose=True)
 
     train_loss_values, train_metric_values = [], []
     val_loss_values, val_metric_values = [], []
@@ -197,8 +198,8 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
         val_loss_values.append(val_loss)
         val_metric_values.append(val_metric)
 
-        if lr_scheduler:
-            scheduler.step(val_metric)
+        if reduce_factor:
+            scheduler.step(val_loss)
 
         log = '  {:3d}  | {:.4f}    {:.4f} | {:.4f}    {:.4f} |'
         log = log.format(epoch + 1, train_loss, train_metric, val_loss, val_metric)
@@ -230,12 +231,12 @@ def train(model, dataloaders, criterion, metric_func, epochs, lr, weight_decay, 
     return history
 
 
-def train_for_citation(model_name, hparams, dataset, epochs, lr, l2, trials, device, model_path):
-    if model_name == 'GCN':
+def train_for_citation(args, hparams, dataset, device, model_path):
+    if args.model == 'GCN':
         model_class = GCN
-    elif model_name == 'ResGCN':
+    elif args.model == 'ResGCN':
         model_class == ResGCN
-    elif model_name == 'JKNet':
+    elif args.model == 'JKNet':
         model_class = JKNet
         hparams.pop('layer_wise_dropedge')
     else:
@@ -250,14 +251,16 @@ def train_for_citation(model_name, hparams, dataset, epochs, lr, l2, trials, dev
 
     histories = []
     acc_values = []
-    for trial in tqdm(range(trials), desc='Trials'):
+    for trial in tqdm(range(args.trials), desc='Trials'):
         print(f'\n=== The {trial+1}-th experiment ===\n')
 
         model = model_class(**hparams).to(device)
         criterion = nn.CrossEntropyLoss()
         metric_func = accuracy
 
-        history = train(model, dataloaders, criterion, metric_func, epochs, lr, l2, device, model_path)
+        history = train(model, dataloaders, criterion, metric_func,
+                        args.epochs, args.lr, args.l2, device,
+                        model_path, args.lr_scheduler, args.partience)
         histories.append(history)
 
         best_loss, best_acc = best_result(model, model_path, dataloaders[-1], criterion, metric_func, device)
