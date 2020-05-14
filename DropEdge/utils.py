@@ -304,6 +304,8 @@ def plot_training(histories, title, metric_name, save_path=None):
         if title:
             plt.title(title)
 
+        plt.tight_layout()
+
     if save_path:
         create_dirs(save_path)
         plt.savefig(save_path)
